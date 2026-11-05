@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Cutting Sesi PT</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gymRed: '#d32f2f',
+                        gymRedHover: '#b71c1c',
+                        gymDark: '#1e1e1e',
+                        gymGray: '#f4f4f9',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
+    </style>
+</head>
+<body class="bg-gymGray text-gray-800 min-h-screen pb-12">
+
+    <!-- Navbar / Header -->
+    <header class="bg-gymDark text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gymRed p-2.5 rounded-xl shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Gym Cutting Session</h1>
+                    <p class="text-xs text-gray-400">Manajemen PT & Cutting Sesi Member</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end flex-wrap">
+                <!-- Tombol Google Sheets -->
+                <button id="btnGoogleSheets" class="flex-1 sm:flex-none bg-green-700 hover:bg-green-800 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 4h-7v3h7V7zm0 5h-7v3h7v-3zm-9-5H5v3h5V7zm0 5H5v3h5v-3zm0 5H5v3h5v-3zm9 0h-7v3h7v-3z"/>
+                    </svg>
+                    Google Sheets
+                </button>
+                <!-- Export Excel -->
+                <button onclick="exportToExcel()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Export Excel
+                </button>
+                <!-- Kelola PT -->
+                <button onclick="openManagePTModal()" class="flex-1 sm:flex-none bg-gray-700 hover:bg-gray-600 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Kelola PT
+                </button>
+                <!-- Tambah Member -->
+                <button onclick="openAddMemberModal()" class="flex-1 sm:flex-none bg-gymRed hover:bg-gymRedHover text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Tambah
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Bar Selector Personal Trainer (PT Tabs) -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Pilih Personal Trainer (PT):</label>
+            <div id="ptTabsContainer" class="flex flex-wrap gap-2">
+                <!-- Tab items akan di-render dinamis -->
+            </div>
+        </div>
+
+        <!-- Section Daftar Member -->
+        <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-xl font-bold text-gymDark flex items-center gap-2">
+                        Daftar Member <span id="activePTTitle" class="text-sm font-semibold text-gymRed bg-red-50 px-2.5 py-1 rounded-md">Semua PT</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Member diurutkan otomatis A-Z. Klik "-1 Sesi" untuk potong instan atau "Cut Custom" untuk atur tanggal/jam.</p>
+                </div>
+                <!-- Search Box -->
+                <div class="relative w-full sm:w-64">
+                    <input type="text" id="searchInput" oninput="renderMembers()" placeholder="Cari nama member..." class="w-full bg-white border border-gray-300 text-xs rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gymRed focus:border-transparent shadow-sm">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- List Member Container (Horizontal Row View) -->
+            <div id="memberListContainer" class="space-y-2">
+                <!-- Member Rows akan di-render di sini -->
+            </div>
+        </div>
+
+        <!-- Section Riwayat Cutting Sesi -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <!-- Header Table Log -->
+            <div class="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 id="logSectionTitle" class="text-lg font-bold text-gymDark">Riwayat Cutting Sesi (Semua PT)</h2>
+                    <p class="text-xs text-gray-500">Daftar riwayat transaksi pemotongan sesi PT.</p>
+                </div>
+                <!-- Counter Badges -->
+                <div class="flex items-center gap-3">
+                    <div id="logStatsBadge" class="bg-red-50 text-gymRed border border-red-100 text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-2">
+                        <span>Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar Filter Periode Tanggal -->
+            <div class="bg-gray-50/70 px-5 py-3 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-bold text-gray-600">Periode Tanggal:</span>
+                    <input type="date" id="dateFromInput" onchange="renderLogs()" class="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-gymRed">
+                    <span class="text-gray-400">s/d</span>
+                    <input type="date" id="dateToInput" onchange="renderLogs()" class="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-gymRed">
+                    <button onclick="resetDateFilter()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-2.5 py-1.5 rounded-lg transition">
+                        Reset Tanggal
+                    </button>
+                </div>
+                <div class="text-gray-400 text-[11px] italic">
+                    * Klik judul kolom <span class="font-bold text-gray-600">Tanggal</span> untuk toggle Old-New / New-Old
+                </div>
+            </div>
+
+            <!-- Tabel Riwayat -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
+                        <tr>
+                            <th id="thDateSort" onclick="toggleDateSort()" class="py-3 px-4 cursor-pointer hover:bg-gray-100 transition select-none flex items-center gap-1 text-gymRed">
+                                <span>TANGGAL</span>
+                                <span id="thDateArrow">▲</span>
+                            </th>
+                            <th class="py-3 px-4">JAM</th>
+                            <th class="py-3 px-4">NAMA PT</th>
+                            <th class="py-3 px-4">NAMA MEMBER</th>
+                            <th class="py-3 px-4">JUMLAH DIPOTONG</th>
+                            <th class="py-3 px-4">SISA SESI AKHIR</th>
+                            <th class="py-3 px-4">CATATAN</th>
+                            <th class="py-3 px-4 text-right">AKSI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody" class="divide-y divide-gray-100 text-gray-700">
+                        <!-- Log rows akan di-render di sini -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Modal Tambah Member Baru -->
+    <div id="modalAddMember" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-gymDark">Tambah Member Baru</h3>
+                <button onclick="closeModal('modalAddMember')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="formAddMember" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nama Member</label>
+                    <input type="text" id="memberName" placeholder="Contoh: Budi Santoso" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Pilih Personal Trainer (PT)</label>
+                    <select id="memberPT" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                        <!-- PT options di-render via JS -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Total Paket Sesi</label>
+                        <input type="number" id="memberTotalSessions" min="1" value="10" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Sesi Terpakai Awal</label>
+                        <input type="number" id="memberUsedSessions" min="0" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modalAddMember')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-semibold transition">Batal</button>
+                    <button type="submit" class="w-1/2 bg-gymRed hover:bg-gymRedHover text-white py-2.5 rounded-lg text-sm font-semibold transition">Simpan Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit Member -->
+    <div id="modalEditMember" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-gymDark">Edit Data Member</h3>
+                <button onclick="closeModal('modalEditMember')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="formEditMember" class="space-y-3">
+                <input type="hidden" id="editMemberId">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nama Member</label>
+                    <input type="text" id="editMemberName" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Personal Trainer (PT)</label>
+                    <select id="editMemberPT" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                        <!-- PT options di-render via JS -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Total Paket Sesi</label>
+                        <input type="number" id="editMemberTotalSessions" min="1" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Sesi Terpakai</label>
+                        <input type="number" id="editMemberUsedSessions" min="0" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modalEditMember')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-semibold transition">Batal</button>
+                    <button type="submit" class="w-1/2 bg-gymRed hover:bg-gymRedHover text-white py-2.5 rounded-lg text-sm font-semibold transition">Update Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Cut Custom -->
+    <div id="modalCutCustom" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-gymDark">Cut Sesi Custom</h3>
+                <button onclick="closeModal('modalCutCustom')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="formCutCustom" class="space-y-3">
+                <input type="hidden" id="cutMemberId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal</label>
+                        <input type="date" id="cutDate" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Jam</label>
+                        <input type="time" id="cutTime" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Jumlah Sesi Dipotong</label>
+                    <input type="number" id="cutAmount" min="1" value="1" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Catatan / Keterangan (Opsional)</label>
+                    <input type="text" id="cutNotes" placeholder="Contoh: Latihan Leg Day" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modalCutCustom')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-semibold transition">Batal</button>
+                    <button type="submit" class="w-1/2 bg-gymRed hover:bg-gymRedHover text-white py-2.5 rounded-lg text-sm font-semibold transition">Potong Sesi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Kelola Daftar PT -->
+    <div id="modalManagePT" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-lg text-gymDark">Kelola Daftar PT</h3>
+                    <p class="text-xs text-gray-500">Tambah PT baru atau ubah nama PT yang ada</p>
+                </div>
+                <button onclick="closeModal('modalManagePT')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <!-- Input Tambah PT Baru -->
+            <div class="flex gap-2">
+                <input type="text" id="newPTName" placeholder="Nama PT Baru..." class="flex-1 border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                <button onclick="addPT()" class="bg-gymRed hover:bg-gymRedHover text-white px-4 py-2.5 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+                    + Tambah
+                </button>
+            </div>
+
+            <!-- List PT Container -->
+            <div id="ptListContainer" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <!-- Data PT akan di-render di sini -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Log Riwayat Cutting -->
+    <div id="modalEditLog" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-gymDark">Edit Log Riwayat Cutting</h3>
+                <button onclick="closeModal('modalEditLog')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="formEditLog" class="space-y-3">
+                <input type="hidden" id="editLogId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal</label>
+                        <input type="date" id="editLogDate" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Jam</label>
+                        <input type="time" id="editLogTime" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Catatan / Keterangan</label>
+                    <input type="text" id="editLogNotes" placeholder="Catatan latihan..." class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modalEditLog')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-semibold transition">Batal</button>
+                    <button type="submit" class="w-1/2 bg-gymRed hover:bg-gymRedHover text-white py-2.5 rounded-lg text-sm font-semibold transition">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Pengaturan Google Sheets Integration -->
+    <div id="modalGoogleSheets" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-green-100 text-green-700 rounded-lg">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 4h-7v3h7V7zm0 5h-7v3h7v-3zm-9-5H5v3h5V7zm0 5H5v3h5v-3zm0 5H5v3h5v-3zm9 0h-7v3h7v-3z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gymDark">Integrasi Google Sheets</h3>
+                        <p class="text-xs text-gray-500">Otomatis simpan setiap cutting sesi ke Google Spreadsheet</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modalGoogleSheets')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <form id="formGoogleSheets" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Web App URL (Google Apps Script)</label>
+                    <input type="url" id="googleSheetsUrlInput" placeholder="https://script.google.com/macros/s/.../exec" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+                    <p class="text-[11px] text-gray-400 mt-1">Tempelkan URL Web App yang Anda dapatkan setelah Deploy di Google Apps Script.</p>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-lg border text-xs text-gray-600 space-y-1">
+                    <div class="font-bold text-gymDark">Status Koneksi:</div>
+                    <div id="googleSheetsStatus" class="text-gray-500">Belum terhubung</div>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modalGoogleSheets')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-semibold transition">Batal</button>
+                    <button type="submit" class="w-1/2 bg-green-700 hover:bg-green-800 text-white py-2.5 rounded-lg text-sm font-semibold transition">Simpan & Hubungkan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Riwayat Cutting Member (Detail Log Per Member) -->
+    <div id="modalMemberLogs" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 id="memberLogsTitle" class="font-bold text-lg text-gymDark">Riwayat Cutting Member</h3>
+                    <p id="memberLogsStats" class="text-xs text-gray-500">Daftar lengkap sesi yang pernah dipotong.</p>
+                </div>
+                <button onclick="closeModal('modalMemberLogs')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="max-h-80 overflow-y-auto border rounded-xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase sticky top-0 border-b">
+                        <tr>
+                            <th class="py-2.5 px-3">Tanggal</th>
+                            <th class="py-2.5 px-3">Jam</th>
+                            <th class="py-2.5 px-3">PT</th>
+                            <th class="py-2.5 px-3">Jumlah Potong</th>
+                            <th class="py-2.5 px-3">Sisa Sesi Akhir</th>
+                            <th class="py-2.5 px-3">Catatan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberLogsTableBody" class="divide-y divide-gray-100">
+                        <!-- Log khusus member akan di-render di sini -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="text-right pt-2">
+                <button onclick="closeModal('modalMemberLogs')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2 rounded-lg text-xs font-semibold transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus Custom -->
+    <div id="modalConfirm" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
+            <div class="mx-auto w-12 h-12 bg-red-100 text-gymRed rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 id="confirmTitle" class="font-bold text-lg text-gymDark">Apakah Anda Yakin?</h3>
+                <p id="confirmMessage" class="text-xs text-gray-500 mt-1">Tindakan ini tidak dapat dibatalkan.</p>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeModal('modalConfirm')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg text-xs font-semibold transition">Batal</button>
+                <button id="btnConfirmAction" class="w-1/2 bg-gymRed hover:bg-gymRedHover text-white py-2.5 rounded-lg text-xs font-semibold transition">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-gymDark text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-medium translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
+        <span id="toastMsg">Notifikasi</span>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State & Data Storage
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-gym-app';
+        let firebaseConfig = null;
+        if (typeof __firebase_config !== 'undefined') {
+            try { firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
+        }
+
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+
+        let ptList = ['Raihan', 'Veli', 'Thomas', 'Jong Han', 'Rivo'];
+        let selectedPT = 'Semua PT';
+        let members = [];
+        let logs = [];
+
+        // Sorting & Filter State
+        let dateSortAsc = true; // true: Old -> New, false: New -> Old
+        let pendingDeleteType = null;
+        let pendingDeleteId = null;
+
+        // Sample Data Fallback
+        const defaultMembers = [
+            { id: '1', name: 'Andi Wijaya', ptName: 'Veli', totalSessions: 20, sessionsUsed: 6, lastCut: '2026-11-04 jam 15:48' },
+            { id: '2', name: 'Budi Santoso', ptName: 'Raihan', totalSessions: 12, sessionsUsed: 4, lastCut: '2026-03-01 jam 10:15' },
+            { id: '3', name: 'Doni Pratama', ptName: 'Rivo', totalSessions: 8, sessionsUsed: 3, lastCut: '2026-03-01 jam 17:45' },
+            { id: '4', name: 'Kevin Tan', ptName: 'Jong Han', totalSessions: 15, sessionsUsed: 4, lastCut: '2026-11-04 jam 15:48' },
+            { id: '5', name: 'Maya Putri', ptName: 'Thomas', totalSessions: 10, sessionsUsed: 10, lastCut: '2026-02-28 jam 11:20' },
+            { id: '6', name: 'Siti Aminah', ptName: 'Raihan', totalSessions: 10, sessionsUsed: 9, lastCut: '2026-03-02 jam 14:30' }
+        ];
+
+        const defaultLogs = [
+            { id: '101', date: '2026-11-03', time: '10:00', ptName: 'Veli', memberName: 'Andi Wijaya', amountCut: 1, sisaSesi: 14, notes: 'Stretching & Core' },
+            { id: '102', date: '2026-11-04', time: '15:48', ptName: 'Veli', memberName: 'Andi Wijaya', amountCut: 1, sisaSesi: 14, notes: '-' },
+            { id: '103', date: '2026-11-04', time: '15:48', ptName: 'Jong Han', memberName: 'Kevin Tan', amountCut: 1, sisaSesi: 11, notes: '-' },
+            { id: '104', date: '2026-11-05', time: '16:49', ptName: 'Jong Han', memberName: 'Nathanael Ziven', amountCut: 1, sisaSesi: 9, notes: 'Potong instan 1 sesi' }
+        ];
+
+        // Init App
+        window.addEventListener('DOMContentLoaded', async () => {
+            loadLocalPTs();
+            initFirebaseOrLocal();
+            setupEventListeners();
+        });
+
+        function loadLocalPTs() {
+            const savedPTs = localStorage.getItem('pt_list');
+            if (savedPTs) {
+                try { ptList = JSON.parse(savedPTs); } catch(e) {}
+            }
+        }
+
+        function saveLocalPTs() {
+            localStorage.setItem('pt_list', JSON.stringify(ptList));
+        }
+
+        async function initFirebaseOrLocal() {
+            if (firebaseConfig) {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            currentUser = user;
+                            subscribeCloudData();
+                        } else {
+                            loadLocalStorageData();
+                        }
+                    });
+                    return;
+                } catch (e) {
+                    console.warn("Firebase Auth Error, fallback to LocalStorage", e);
+                }
+            }
+            loadLocalStorageData();
+        }
+
+        function loadLocalStorageData() {
+            const savedMembers = localStorage.getItem('pt_members');
+            members = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
+
+            const savedLogs = localStorage.getItem('pt_logs');
+            logs = savedLogs ? JSON.parse(savedLogs) : defaultLogs;
+
+            renderAll();
+        }
+
+        function subscribeCloudData() {
+            if (!db) return;
+            
+            // Subscribe Members
+            const membersCol = collection(db, 'artifacts', appId, 'public', 'data', 'members');
+            onSnapshot(membersCol, (snapshot) => {
+                if (!snapshot.empty) {
+                    members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                } else {
+                    members = defaultMembers;
+                    members.forEach(m => setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(m.id)), m));
+                }
+                localStorage.setItem('pt_members', JSON.stringify(members));
+                renderAll();
+            }, (err) => console.error("Cloud Members error:", err));
+
+            // Subscribe Logs
+            const logsCol = collection(db, 'artifacts', appId, 'public', 'data', 'logs');
+            onSnapshot(logsCol, (snapshot) => {
+                if (!snapshot.empty) {
+                    logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                } else {
+                    logs = defaultLogs;
+                    logs.forEach(l => setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(l.id)), l));
+                }
+                localStorage.setItem('pt_logs', JSON.stringify(logs));
+                renderLogs();
+            }, (err) => console.error("Cloud Logs error:", err));
+        }
+
+        function renderAll() {
+            renderPTTabs();
+            renderMembers();
+            renderLogs();
+        }
+
+        // Render PT Selector Tabs
+        function renderPTTabs() {
+            const container = document.getElementById('ptTabsContainer');
+            if (!container) return;
+
+            let html = `
+                <button onclick="window.selectPT('Semua PT')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${selectedPT === 'Semua PT' ? 'bg-gymRed text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                    <span>Semua PT</span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px] ${selectedPT === 'Semua PT' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'}">${members.length}</span>
+                </button>
+            `;
+
+            ptList.forEach(pt => {
+                const count = members.filter(m => m.ptName === pt).length;
+                const isActive = selectedPT === pt;
+                html += `
+                    <button onclick="window.selectPT('${pt}')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${isActive ? 'bg-gymRed text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                        <span>${pt}</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'}">${count}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+            const titleEl = document.getElementById('activePTTitle');
+            if (titleEl) titleEl.innerText = selectedPT;
+            
+            const logTitleEl = document.getElementById('logSectionTitle');
+            if (logTitleEl) logTitleEl.innerText = `Riwayat Cutting Sesi (${selectedPT === 'Semua PT' ? 'Semua PT' : 'PT ' + selectedPT})`;
+        }
+
+        function selectPT(ptName) {
+            selectedPT = ptName;
+            renderPTTabs();
+            renderMembers();
+            renderLogs();
+        }
+
+        // Render Member List (A-Z Sorted, Row Layout)
+        function renderMembers() {
+            const container = document.getElementById('memberListContainer');
+            if (!container) return;
+
+            const searchQuery = (document.getElementById('searchInput')?.value || '').toLowerCase();
+
+            // Filter
+            let filtered = members.filter(m => {
+                const matchPT = selectedPT === 'Semua PT' || m.ptName === selectedPT;
+                const matchSearch = m.name.toLowerCase().includes(searchQuery) || m.ptName.toLowerCase().includes(searchQuery);
+                return matchPT && matchSearch;
+            });
+
+            // Sort A-Z
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-8 text-center border border-dashed border-gray-200">
+                        <p class="text-xs text-gray-400">Tidak ada member ditemukan.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(m => {
+                const total = parseInt(m.totalSessions) || 1;
+                const used = parseInt(m.sessionsUsed) || 0;
+                const remaining = Math.max(0, total - used);
+                const percent = Math.min(100, Math.round((used / total) * 100));
+
+                let badgeClass = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+                let barClass = 'bg-emerald-500';
+                let statusText = 'AKTIF';
+
+                if (remaining === 0) {
+                    badgeClass = 'bg-red-50 text-gymRed border-red-200';
+                    barClass = 'bg-gymRed';
+                    statusText = 'SESI HABIS';
+                } else if (remaining <= 2) {
+                    badgeClass = 'bg-amber-50 text-amber-600 border-amber-200';
+                    barClass = 'bg-amber-500';
+                    statusText = 'HAMPIR HABIS';
+                }
+
+                html += `
+                    <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                        <!-- Left Info -->
+                        <div class="flex items-center gap-3 min-w-[220px]">
+                            <button onclick="window.openMemberLogsModal('${m.id}')" title="Klik untuk lihat riwayat" class="text-left group">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-sm text-gymDark group-hover:text-gymRed transition">${m.name}</span>
+                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badgeClass}">${statusText}</span>
+                                </div>
+                                <div class="text-xs text-gray-400">PT: <span class="font-semibold text-gray-600">${m.ptName}</span></div>
+                            </button>
+                        </div>
+
+                        <!-- Center Progress Bar -->
+                        <div class="w-full md:w-1/3 flex flex-col gap-1">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-500">Terpakai: <strong class="text-gymDark">${used}/${total}</strong></span>
+                                <span class="font-bold text-gymRed">Sisa: ${remaining} Sesi</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                <div class="${barClass} h-2 rounded-full transition-all duration-300" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Action Buttons -->
+                        <div class="flex items-center gap-2 w-full md:w-auto justify-end pt-2 md:pt-0 border-t md:border-t-0 border-gray-100">
+                            <button onclick="window.cutOneSession('${m.id}')" ${remaining === 0 ? 'disabled' : ''} class="bg-gymRed hover:bg-gymRedHover disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                -1 Sesi
+                            </button>
+                            <button onclick="window.openCutCustomModal('${m.id}')" ${remaining === 0 ? 'disabled' : ''} class="bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-gray-700 text-xs font-medium px-2.5 py-1.5 rounded-lg transition">
+                                Cut Custom
+                            </button>
+                            <button onclick="window.openEditMemberModal('${m.id}')" class="p-1.5 text-gray-400 hover:text-gymDark rounded-lg hover:bg-gray-100 transition" title="Edit Member">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button onclick="window.confirmDelete('member', '${m.id}')" class="p-1.5 text-gray-400 hover:text-gymRed rounded-lg hover:bg-red-50 transition" title="Hapus Member">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Render Logs Table
+        function renderLogs() {
+            const tableBody = document.getElementById('logTableBody');
+            if (!tableBody) return;
+
+            const dateFrom = document.getElementById('dateFromInput')?.value;
+            const dateTo = document.getElementById('dateToInput')?.value;
+
+            // Filter Logs by PT & Date Range
+            let filteredLogs = logs.filter(l => {
+                const matchPT = selectedPT === 'Semua PT' || l.ptName === selectedPT;
+                let matchDate = true;
+                if (dateFrom && l.date < dateFrom) matchDate = false;
+                if (dateTo && l.date > dateTo) matchDate = false;
+                return matchPT && matchDate;
+            });
+
+            // Sort Logs (Old-New vs New-Old)
+            filteredLogs.sort((a, b) => {
+                const dateTimeA = `${a.date} ${a.time}`;
+                const dateTimeB = `${b.date} ${b.time}`;
+                return dateSortAsc ? dateTimeA.localeCompare(dateTimeB) : dateTimeB.localeCompare(dateTimeA);
+            });
+
+            // Calculate Statistics
+            const totalCutCount = filteredLogs.reduce((sum, item) => sum + (parseInt(item.amountCut) || 1), 0);
+            const now = new Date();
+            const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const thisMonthCutCount = logs
+                .filter(l => (selectedPT === 'Semua PT' || l.ptName === selectedPT) && l.date.startsWith(currentMonthStr))
+                .reduce((sum, item) => sum + (parseInt(item.amountCut) || 1), 0);
+
+            const badgeEl = document.getElementById('logStatsBadge');
+            if (badgeEl) {
+                badgeEl.innerHTML = `<span>Total Cutting: <strong>${totalCutCount} Sesi</strong> (${filteredLogs.length} Transaksi)</span> | <span class="text-gray-500 font-normal">Bulan Ini: ${thisMonthCutCount} Sesi</span>`;
+            }
+
+            if (filteredLogs.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-gray-400">Belum ada riwayat cutting sesi.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredLogs.forEach(l => {
+                html += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="py-3 px-4 font-semibold text-gray-800">${l.date}</td>
+                        <td class="py-3 px-4 text-gray-500">${l.time}</td>
+                        <td class="py-3 px-4 font-semibold text-gymDark">${l.ptName}</td>
+                        <td class="py-3 px-4 text-gray-800 font-medium">${l.memberName}</td>
+                        <td class="py-3 px-4 font-bold text-gymRed">-${l.amountCut} Sesi</td>
+                        <td class="py-3 px-4 text-gray-600">Sisa ${l.sisaSesi}</td>
+                        <td class="py-3 px-4 text-gray-400 italic">${l.notes || '-'}</td>
+                        <td class="py-3 px-4 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="window.openEditLogModal('${l.id}')" class="p-1.5 text-gray-400 hover:text-gymDark rounded-lg hover:bg-gray-100 transition" title="Edit Log">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </button>
+                                <button onclick="window.confirmDelete('log', '${l.id}')" class="p-1.5 text-gray-400 hover:text-gymRed rounded-lg hover:bg-red-50 transition" title="Hapus Log">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableBody.innerHTML = html;
+        }
+
+        // Action Handlers: -1 Sesi & Cut Custom
+        async function cutOneSession(memberId) {
+            const member = members.find(m => String(m.id) === String(memberId));
+            if (!member) return;
+
+            const total = parseInt(member.totalSessions) || 1;
+            const currentUsed = parseInt(member.sessionsUsed) || 0;
+            if (currentUsed >= total) {
+                showToast("Sesi member sudah habis!");
+                return;
+            }
+
+            member.sessionsUsed = currentUsed + 1;
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
+            member.lastCut = `${dateStr} jam ${timeStr}`;
+
+            await saveMemberToCloud(member);
+
+            const sisa = total - member.sessionsUsed;
+            const newLog = {
+                id: String(Date.now()),
+                memberId: member.id,
+                date: dateStr,
+                time: timeStr,
+                ptName: member.ptName,
+                memberName: member.name,
+                amountCut: 1,
+                sisaSesi: Math.max(0, sisa),
+                notes: 'Potong instan 1 sesi'
+            };
+
+            await saveLogToCloud(newLog);
+            showToast(`Sesi ${member.name} berhasil dipotong (-1)`);
+            renderMembers();
+        }
+
+        function openCutCustomModal(memberId) {
+            const member = members.find(m => String(m.id) === String(memberId));
+            if (!member) return;
+
+            document.getElementById('cutMemberId').value = member.id;
+            const now = new Date();
+            document.getElementById('cutDate').value = now.toISOString().split('T')[0];
+            document.getElementById('cutTime').value = now.toTimeString().split(' ')[0].substring(0, 5);
+            document.getElementById('cutAmount').value = 1;
+            document.getElementById('cutNotes').value = '';
+
+            openModal('modalCutCustom');
+        }
+
+        async function handleCutCustom(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const memberId = document.getElementById('cutMemberId').value;
+            const date = document.getElementById('cutDate').value;
+            const time = document.getElementById('cutTime').value;
+            const amount = parseInt(document.getElementById('cutAmount').value) || 1;
+            const notes = document.getElementById('cutNotes').value || '-';
+
+            const member = members.find(m => String(m.id) === String(memberId));
+            if (!member) return;
+
+            const total = parseInt(member.totalSessions) || 1;
+            const currentUsed = parseInt(member.sessionsUsed) || 0;
+
+            member.sessionsUsed = Math.min(total, currentUsed + amount);
+            member.lastCut = `${date} jam ${time}`;
+            await saveMemberToCloud(member);
+
+            const sisa = Math.max(0, total - member.sessionsUsed);
+            const newLog = {
+                id: String(Date.now()),
+                memberId: member.id,
+                date: date,
+                time: time,
+                ptName: member.ptName,
+                memberName: member.name,
+                amountCut: amount,
+                sisaSesi: sisa,
+                notes: notes
+            };
+
+            await saveLogToCloud(newLog);
+            closeModal('modalCutCustom');
+            showToast(`Cutting sesi custom ${member.name} berhasil disimpan`);
+            renderMembers();
+        }
+
+        // Add Member
+        function openAddMemberModal() {
+            const selectEl = document.getElementById('memberPT');
+            if (selectEl) {
+                selectEl.innerHTML = ptList.map(pt => `<option value="${pt}">${pt}</option>`).join('');
+                if (selectedPT !== 'Semua PT') selectEl.value = selectedPT;
+            }
+            openModal('modalAddMember');
+        }
+
+        async function handleAddMember(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const name = document.getElementById('memberName').value.trim();
+            const ptName = document.getElementById('memberPT').value;
+            const total = parseInt(document.getElementById('memberTotalSessions').value) || 10;
+            const used = parseInt(document.getElementById('memberUsedSessions').value) || 0;
+
+            if (!name) return;
+
+            const newMember = {
+                id: String(Date.now()),
+                name: name,
+                ptName: ptName,
+                totalSessions: total,
+                sessionsUsed: used,
+                lastCut: '-'
+            };
+
+            await saveMemberToCloud(newMember);
+            closeModal('modalAddMember');
+            document.getElementById('formAddMember').reset();
+            showToast(`Member ${name} berhasil ditambahkan!`);
+            renderMembers();
+            renderPTTabs();
+        }
+
+        // Edit Member
+        function openEditMemberModal(memberId) {
+            const member = members.find(m => String(m.id) === String(memberId));
+            if (!member) return;
+
+            const selectEl = document.getElementById('editMemberPT');
+            if (selectEl) {
+                selectEl.innerHTML = ptList.map(pt => `<option value="${pt}">${pt}</option>`).join('');
+                selectEl.value = member.ptName;
+            }
+
+            document.getElementById('editMemberId').value = member.id;
+            document.getElementById('editMemberName').value = member.name;
+            document.getElementById('editMemberTotalSessions').value = member.totalSessions;
+            document.getElementById('editMemberUsedSessions').value = member.sessionsUsed;
+
+            openModal('modalEditMember');
+        }
+
+        async function handleEditMember(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const memberId = document.getElementById('editMemberId').value;
+            const member = members.find(m => String(m.id) === String(memberId));
+            if (!member) return;
+
+            member.name = document.getElementById('editMemberName').value.trim();
+            member.ptName = document.getElementById('editMemberPT').value;
+            member.totalSessions = parseInt(document.getElementById('editMemberTotalSessions').value) || 1;
+            member.sessionsUsed = parseInt(document.getElementById('editMemberUsedSessions').value) || 0;
+
+            await saveMemberToCloud(member);
+            closeModal('modalEditMember');
+            showToast(`Data member ${member.name} diperbarui!`);
+            renderMembers();
+            renderPTTabs();
+        }
+
+        // Edit Log
+        function openEditLogModal(logId) {
+            const log = logs.find(l => String(l.id) === String(logId));
+            if (!log) return;
+
+            document.getElementById('editLogId').value = log.id;
+            document.getElementById('editLogDate').value = log.date || '';
+            document.getElementById('editLogTime').value = log.time || '';
+            document.getElementById('editLogNotes').value = log.notes || '';
+
+            openModal('modalEditLog');
+        }
+
+        async function handleEditLog(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const logId = document.getElementById('editLogId').value;
+            const log = logs.find(l => String(l.id) === String(logId));
+            if (!log) return;
+
+            log.date = document.getElementById('editLogDate').value;
+            log.time = document.getElementById('editLogTime').value;
+            log.notes = document.getElementById('editLogNotes').value || '-';
+
+            await saveLogToCloud(log);
+            closeModal('modalEditLog');
+            showToast("Log riwayat berhasil diperbarui!");
+            renderLogs();
+        }
+
+        // Delete Confirmation Manager
+        function confirmDelete(type, id) {
+            pendingDeleteType = type;
+            pendingDeleteId = id;
+
+            const titleEl = document.getElementById('confirmTitle');
+            const msgEl = document.getElementById('confirmMessage');
+
+            if (type === 'member') {
+                const member = members.find(m => String(m.id) === String(id));
+                if (titleEl) titleEl.innerText = "Hapus Member?";
+                if (msgEl) msgEl.innerText = `Apakah Anda yakin ingin menghapus member ${member ? member.name : ''}? Data riwayatnya akan tetap ada.`;
+            } else if (type === 'log') {
+                if (titleEl) titleEl.innerText = "Hapus Riwayat Cutting?";
+                if (msgEl) msgEl.innerText = "Apakah Anda yakin? Jumlah sesi yang dipotong akan dikembalikan ke saldo member.";
+            }
+
+            openModal('modalConfirm');
+        }
+
+        async function executeConfirmDelete() {
+            if (!pendingDeleteId) return;
+
+            if (pendingDeleteType === 'member') {
+                await removeMemberFromCloud(pendingDeleteId);
+                showToast("Member berhasil dihapus");
+                renderMembers();
+                renderPTTabs();
+            } else if (pendingDeleteType === 'log') {
+                const log = logs.find(l => String(l.id) === String(pendingDeleteId));
+                if (log) {
+                    // Restore member sessions used
+                    const member = members.find(m => String(m.id) === String(log.memberId) || m.name === log.memberName);
+                    if (member) {
+                        const amount = parseInt(log.amountCut) || 1;
+                        member.sessionsUsed = Math.max(0, (parseInt(member.sessionsUsed) || 0) - amount);
+                        await saveMemberToCloud(member);
+                    }
+
+                    // Delete Log
+                    await removeLogFromCloud(pendingDeleteId);
+                    showToast("Riwayat cutting dihapus & saldo sesi dikembalikan");
+                    renderMembers();
+                    renderLogs();
+                }
+            }
+
+            closeModal('modalConfirm');
+            pendingDeleteType = null;
+            pendingDeleteId = null;
+        }
+
+        // Manage PT
+        function openManagePTModal() {
+            renderPTListInModal();
+            openModal('modalManagePT');
+        }
+
+        function renderPTListInModal() {
+            const container = document.getElementById('ptListContainer');
+            if (!container) return;
+
+            let html = '';
+            ptList.forEach((pt, index) => {
+                const count = members.filter(m => m.ptName === pt).length;
+                html += `
+                    <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg border text-xs">
+                        <div id="ptDisplay_${index}" class="flex items-center gap-2">
+                            <span class="font-bold text-gymDark">${pt}</span>
+                            <span class="text-gray-400">(${count} member)</span>
+                        </div>
+                        <div id="ptEdit_${index}" class="hidden flex items-center gap-1">
+                            <input type="text" id="inputPT_${index}" value="${pt}" class="border rounded px-2 py-1 text-xs w-32 focus:outline-none focus:ring-1 focus:ring-gymRed">
+                            <button onclick="window.saveEditPT(${index})" class="bg-emerald-600 text-white px-2 py-1 rounded font-semibold text-[11px]">Simpan</button>
+                            <button onclick="window.cancelEditPT(${index})" class="bg-gray-300 text-gray-700 px-2 py-1 rounded font-semibold text-[11px]">Batal</button>
+                        </div>
+                        <div id="ptActions_${index}" class="flex items-center gap-1">
+                            <button onclick="window.startEditPT(${index})" class="px-2 py-1 text-gray-600 hover:bg-gray-200 rounded font-medium">Edit</button>
+                            <button onclick="window.deletePT(${index})" ${count > 0 ? 'disabled title="PT masih memiliki member"' : ''} class="px-2 py-1 text-gymRed hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed rounded font-medium">Hapus</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function addPT() {
+            const input = document.getElementById('newPTName');
+            const val = input ? input.value.trim() : '';
+            if (!val) return;
+
+            if (ptList.includes(val)) {
+                showToast("Nama PT sudah ada!");
+                return;
+            }
+
+            ptList.push(val);
+            saveLocalPTs();
+            input.value = '';
+            renderPTListInModal();
+            renderPTTabs();
+            showToast(`PT ${val} berhasil ditambahkan`);
+        }
+
+        function startEditPT(index) {
+            document.getElementById(`ptDisplay_${index}`)?.classList.add('hidden');
+            document.getElementById(`ptActions_${index}`)?.classList.add('hidden');
+            document.getElementById(`ptEdit_${index}`)?.classList.remove('hidden');
+        }
+
+        function cancelEditPT(index) {
+            document.getElementById(`ptDisplay_${index}`)?.classList.remove('hidden');
+            document.getElementById(`ptActions_${index}`)?.classList.remove('hidden');
+            document.getElementById(`ptEdit_${index}`)?.classList.add('hidden');
+        }
+
+        async function saveEditPT(index) {
+            const oldName = ptList[index];
+            const newName = (document.getElementById(`inputPT_${index}`)?.value || '').trim();
+            if (!newName || newName === oldName) {
+                cancelEditPT(index);
+                return;
+            }
+
+            ptList[index] = newName;
+            saveLocalPTs();
+
+            // Update PT Name in Members & Logs
+            members.forEach(async m => {
+                if (m.ptName === oldName) {
+                    m.ptName = newName;
+                    await saveMemberToCloud(m);
+                }
+            });
+
+            logs.forEach(async l => {
+                if (l.ptName === oldName) {
+                    l.ptName = newName;
+                    await saveLogToCloud(l);
+                }
+            });
+
+            if (selectedPT === oldName) selectedPT = newName;
+
+            renderPTListInModal();
+            renderPTTabs();
+            renderMembers();
+            renderLogs();
+            showToast("Nama PT berhasil diperbarui!");
+        }
+
+        function deletePT(index) {
+            const pt = ptList[index];
+            const count = members.filter(m => m.ptName === pt).length;
+            if (count > 0) {
+                showToast("Tidak bisa menghapus PT yang masih memiliki member!");
+                return;
+            }
+
+            ptList.splice(index, 1);
+            saveLocalPTs();
+
+            if (selectedPT === pt) selectedPT = 'Semua PT';
+
+            renderPTListInModal();
+            renderPTTabs();
+            renderMembers();
+            renderLogs();
+            showToast(`PT ${pt} berhasil dihapus`);
+        }
+
+        // View Log Specific To A Member
+        function openMemberLogsModal(memberId) {
+            const member = members.find(m => String(m.id) === String(memberId));
+            if (!member) return;
+
+            const memberLogs = logs.filter(l => String(l.memberId) === String(member.id) || l.memberName === member.name);
+            memberLogs.sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
+
+            document.getElementById('memberLogsTitle').innerText = `Riwayat Cutting: ${member.name}`;
+            document.getElementById('memberLogsStats').innerText = `PT: ${member.ptName} | Terpakai: ${member.sessionsUsed}/${member.totalSessions} Sesi`;
+
+            const tbody = document.getElementById('memberLogsTableBody');
+            if (tbody) {
+                if (memberLogs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-400">Belum ada riwayat cutting untuk member ini.</td></tr>`;
+                } else {
+                    tbody.innerHTML = memberLogs.map(l => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-2.5 px-3 font-semibold">${l.date}</td>
+                            <td class="py-2.5 px-3 text-gray-500">${l.time}</td>
+                            <td class="py-2.5 px-3 font-medium">${l.ptName}</td>
+                            <td class="py-2.5 px-3 font-bold text-gymRed">-${l.amountCut} Sesi</td>
+                            <td class="py-2.5 px-3">Sisa ${l.sisaSesi}</td>
+                            <td class="py-2.5 px-3 text-gray-400 italic">${l.notes || '-'}</td>
+                        </tr>
+                    `).join('');
+                }
+            }
+
+            openModal('modalMemberLogs');
+        }
+
+        // Cloud & Storage Functions
+        async function saveMemberToCloud(memberObj) {
+            if (db && currentUser) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(memberObj.id)), memberObj);
+            } else {
+                const idx = members.findIndex(m => String(m.id) === String(memberObj.id));
+                if (idx >= 0) members[idx] = memberObj;
+                else members.push(memberObj);
+                localStorage.setItem('pt_members', JSON.stringify(members));
+            }
+        }
+
+        async function removeMemberFromCloud(memberId) {
+            if (db && currentUser) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(memberId)));
+            } else {
+                members = members.filter(m => String(m.id) !== String(memberId));
+                localStorage.setItem('pt_members', JSON.stringify(members));
+            }
+        }
+
+        async function saveLogToCloud(logObj) {
+            sendToGoogleSheets(logObj);
+            if (db && currentUser) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logObj.id)), logObj);
+            } else {
+                const idx = logs.findIndex(l => String(l.id) === String(logObj.id));
+                if (idx >= 0) logs[idx] = logObj;
+                else logs.push(logObj);
+                localStorage.setItem('pt_logs', JSON.stringify(logs));
+            }
+        }
+
+        async function removeLogFromCloud(logId) {
+            if (db && currentUser) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logId)));
+            } else {
+                logs = logs.filter(l => String(l.id) !== String(logId));
+                localStorage.setItem('pt_logs', JSON.stringify(logs));
+            }
+        }
+
+        // Google Sheets Integrator
+        function sendToGoogleSheets(logObj) {
+            const scriptUrl = localStorage.getItem('google_sheets_url');
+            if (!scriptUrl) return;
+
+            try {
+                fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(logObj)
+                }).then(() => {
+                    console.log("Data cutting terkirim ke Google Sheets.");
+                }).catch(err => console.error("Error Google Sheets send:", err));
+            } catch (err) {
+                console.error("Fetch Google Sheets Error:", err);
+            }
+        }
+
+        function openGoogleSheetsModal() {
+            const savedUrl = localStorage.getItem('google_sheets_url') || '';
+            const inputEl = document.getElementById('googleSheetsUrlInput');
+            if (inputEl) inputEl.value = savedUrl;
+
+            const statusEl = document.getElementById('googleSheetsStatus');
+            if (statusEl) {
+                if (savedUrl) {
+                    statusEl.innerHTML = `<span class="text-emerald-600 font-bold">✓ Terhubung ke Google Sheets</span>`;
+                } else {
+                    statusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Belum Terhubung (Masukkan URL Web App)</span>`;
+                }
+            }
+            openModal('modalGoogleSheets');
+        }
+
+        function handleSaveGoogleSheetsUrl(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const inputEl = document.getElementById('googleSheetsUrlInput');
+            const url = inputEl ? inputEl.value.trim() : '';
+            if (url) {
+                localStorage.setItem('google_sheets_url', url);
+                closeModal('modalGoogleSheets');
+                showToast("Google Sheets berhasil terhubung!");
+            }
+        }
+
+        // Export Excel
+        function exportToExcel() {
+            if (logs.length === 0 && members.length === 0) {
+                showToast("Belum ada data untuk diexport!");
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+
+            // Sheet 1: Rekap Member
+            const memberData = members.map(m => ({
+                'Nama Member': m.name,
+                'Personal Trainer': m.ptName,
+                'Total Paket Sesi': m.totalSessions,
+                'Sesi Terpakai': m.sessionsUsed,
+                'Sisa Sesi': Math.max(0, m.totalSessions - m.sessionsUsed),
+                'Terakhir Dipotong': m.lastCut || '-'
+            }));
+            const wsMembers = XLSX.utils.json_to_sheet(memberData);
+            XLSX.utils.book_append_sheet(wb, wsMembers, "Data Member");
+
+            // Sheet 2: Riwayat Transaksi
+            const logData = logs.map(l => ({
+                'Tanggal': l.date,
+                'Jam': l.time,
+                'Nama PT': l.ptName,
+                'Nama Member': l.memberName,
+                'Jumlah Dipotong': l.amountCut,
+                'Sisa Sesi Akhir': l.sisaSesi,
+                'Catatan': l.notes || '-'
+            }));
+            const wsLogs = XLSX.utils.json_to_sheet(logData);
+            XLSX.utils.book_append_sheet(wb, wsLogs, "Riwayat Transaksi");
+
+            XLSX.writeFile(wb, `Data_Cutting_Sesi_PT_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showToast("File Excel berhasil diunduh!");
+        }
+
+        // Sorting & Date Filter Controls
+        function toggleDateSort() {
+            dateSortAsc = !dateSortAsc;
+            const arrowEl = document.getElementById('thDateArrow');
+            if (arrowEl) arrowEl.innerText = dateSortAsc ? '▲' : '▼';
+            renderLogs();
+        }
+
+        function resetDateFilter() {
+            const fromInput = document.getElementById('dateFromInput');
+            const toInput = document.getElementById('dateToInput');
+            if (fromInput) fromInput.value = '';
+            if (toInput) toInput.value = '';
+            renderLogs();
+        }
+
+        // UI Helpers & Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            if (!toast || !toastMsg) return;
+
+            toastMsg.innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function openModal(id) {
+            document.getElementById(id)?.classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id)?.classList.add('hidden');
+        }
+
+        function setupEventListeners() {
+            // Forms
+            document.getElementById('formAddMember')?.addEventListener('submit', handleAddMember);
+            document.getElementById('formEditMember')?.addEventListener('submit', handleEditMember);
+            document.getElementById('formCutCustom')?.addEventListener('submit', handleCutCustom);
+            document.getElementById('formEditLog')?.addEventListener('submit', handleEditLog);
+            document.getElementById('formGoogleSheets')?.addEventListener('submit', handleSaveGoogleSheetsUrl);
+            document.getElementById('btnConfirmAction')?.addEventListener('click', executeConfirmDelete);
+
+            // Google Sheets Header Button
+            document.getElementById('btnGoogleSheets')?.addEventListener('click', openGoogleSheetsModal);
+        }
+
+        // Bind Window Exports
+        window.selectPT = selectPT;
+        window.cutOneSession = cutOneSession;
+        window.openCutCustomModal = openCutCustomModal;
+        window.openAddMemberModal = openAddMemberModal;
+        window.openEditMemberModal = openEditMemberModal;
+        window.openEditLogModal = openEditLogModal;
+        window.confirmDelete = confirmDelete;
+        window.openManagePTModal = openManagePTModal;
+        window.addPT = addPT;
+        window.startEditPT = startEditPT;
+        window.cancelEditPT = cancelEditPT;
+        window.saveEditPT = saveEditPT;
+        window.deletePT = deletePT;
+        window.openMemberLogsModal = openMemberLogsModal;
+        window.openGoogleSheetsModal = openGoogleSheetsModal;
+        window.exportToExcel = exportToExcel;
+        window.toggleDateSort = toggleDateSort;
+        window.resetDateFilter = resetDateFilter;
+        window.renderMembers = renderMembers;
+        window.renderLogs = renderLogs;
+        window.closeModal = closeModal;
+    </script>
+</body>
+</html>

@@ -509,6 +509,7 @@
         let pendingDeleteId = null;
         let isFirstMembersSnapshot = true;
         let isFirstLogsSnapshot = true;
+        let isFirstPTsSnapshot = true;
 
         const defaultMembers = [
             { id: '1', name: 'Andi Wijaya', ptName: 'Veli', totalSessions: 20, sessionsUsed: 6, lastCut: '2026-11-04 jam 15:48' },
@@ -587,6 +588,29 @@
             
             const statusTextEl = document.getElementById('cloudStatusText');
             const connStatusEl = document.getElementById('firebaseConnectionStatus');
+
+            // Synchronize PT List across all devices
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), async (docSnap) => {
+                if (!docSnap.exists() && isFirstPTsSnapshot) {
+                    isFirstPTsSnapshot = false;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), { list: ptList });
+                    return;
+                }
+                isFirstPTsSnapshot = false;
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && Array.isArray(data.list)) {
+                        ptList = data.list;
+                        localStorage.setItem('pt_list', JSON.stringify(ptList));
+                        renderPTTabs();
+                        renderMembers();
+                        renderLogs();
+                        if (editingPTIndex !== null) renderPTManageList();
+                    }
+                }
+            }, (error) => {
+                console.warn("Error cloud PTs:", error);
+            });
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'members'), async (snapshot) => {
                 if (snapshot.empty && isFirstMembersSnapshot) {
@@ -669,6 +693,21 @@
                 localStorage.setItem('pt_logs', JSON.stringify(logs));
             }
 
+            renderPTTabs();
+            renderMembers();
+            renderLogs();
+        }
+
+        async function savePTsToCloud(newList) {
+            ptList = [...newList];
+            localStorage.setItem('pt_list', JSON.stringify(ptList));
+            if (db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), { list: ptList });
+                } catch (e) {
+                    console.warn("Error saving PT list to cloud:", e);
+                }
+            }
             renderPTTabs();
             renderMembers();
             renderLogs();
@@ -1208,15 +1247,14 @@
             container.innerHTML = html;
         }
 
-        function addPT() {
+        async function addPT() {
             const input = document.getElementById('newPTName');
             const val = input ? input.value.trim() : '';
             if (val && !ptList.includes(val)) {
                 ptList.push(val);
-                saveLocalPTs();
+                await savePTsToCloud(ptList);
                 input.value = '';
                 renderPTManageList();
-                renderPTTabs();
                 showToast(`PT ${val} ditambahkan.`);
             }
         }
@@ -1231,14 +1269,13 @@
             renderPTManageList();
         }
 
-        function saveEditPT(index) {
+        async function saveEditPT(index) {
             const input = document.getElementById(`editPTInput_${index}`);
             const newName = input ? input.value.trim() : '';
             if (!newName) return;
 
             const oldName = ptList[index];
             ptList[index] = newName;
-            saveLocalPTs();
 
             // Update member PT names
             members.forEach(m => {
@@ -1249,16 +1286,14 @@
             });
 
             if (selectedPT === oldName) selectedPT = newName;
-
             editingPTIndex = null;
+
+            await savePTsToCloud(ptList);
             renderPTManageList();
-            renderPTTabs();
-            renderMembers();
-            renderLogs();
             showToast("Nama PT diperbarui!");
         }
 
-        function deletePT(index) {
+        async function deletePT(index) {
             const ptName = ptList[index];
             const memberCount = members.filter(m => m.ptName === ptName).length;
             if (memberCount > 0) {
@@ -1267,11 +1302,10 @@
             }
 
             ptList.splice(index, 1);
-            saveLocalPTs();
             if (selectedPT === ptName) selectedPT = 'Semua PT';
+
+            await savePTsToCloud(ptList);
             renderPTManageList();
-            renderPTTabs();
-            renderMembers();
             showToast(`PT ${ptName} dihapus.`);
         }
 

@@ -552,27 +552,26 @@
                     db = getFirestore(app);
                     auth = getAuth(app);
 
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch(authErr) {
+                        console.warn("Auth info:", authErr);
                     }
 
                     onAuthStateChanged(auth, (user) => {
-                        if (user) {
-                            currentUser = user;
-                            subscribeCloudData();
-                            if (statusTextEl) statusTextEl.innerHTML = `⚡ Realtime Active`;
-                            if (connStatusEl) connStatusEl.innerHTML = `<span class="text-emerald-600 font-bold">✓ Terhubung ke Cloud Real-time Database</span>`;
-                        } else {
-                            loadLocalStorageData();
-                            if (statusTextEl) statusTextEl.innerHTML = `Offline / Local`;
-                            if (connStatusEl) connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Tidak terhubung (Mode Offline)</span>`;
-                        }
+                        if (user) currentUser = user;
                     });
+
+                    subscribeCloudData();
                     return;
                 } catch (e) {
-                    console.warn("Firebase Auth Error, fallback to LocalStorage", e);
+                    console.warn("Firebase Init Error, fallback to LocalStorage", e);
+                    if (statusTextEl) statusTextEl.innerHTML = `Offline / Local`;
+                    if (connStatusEl) connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Gagal Terhubung (${e.message || 'Error'})</span>`;
                 }
             }
             
@@ -582,8 +581,11 @@
         }
 
         function subscribeCloudData() {
-            if (!db || !currentUser) return;
+            if (!db) return;
             
+            const statusTextEl = document.getElementById('cloudStatusText');
+            const connStatusEl = document.getElementById('firebaseConnectionStatus');
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'members'), (snapshot) => {
                 const cloudMembers = [];
                 snapshot.forEach((doc) => {
@@ -592,8 +594,19 @@
                 members = cloudMembers.length > 0 ? cloudMembers : defaultMembers;
                 renderPTTabs();
                 renderMembers();
+
+                if (statusTextEl) statusTextEl.innerHTML = `⚡ Realtime Active`;
+                if (connStatusEl) connStatusEl.innerHTML = `<span class="text-emerald-600 font-bold">✓ Terhubung ke Cloud Real-time Database</span>`;
             }, (error) => {
                 console.warn("Error cloud members:", error);
+                if (statusTextEl) statusTextEl.innerHTML = `Offline / Error`;
+                if (connStatusEl) {
+                    if (error.code === 'permission-denied') {
+                        connStatusEl.innerHTML = `<span class="text-red-600 font-bold">❌ Rules Firestore Ditolak! Aktifkan 'Test Mode' di Firebase Console.</span>`;
+                    } else {
+                        connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Firestore Error: ${error.message}</span>`;
+                    }
+                }
                 loadLocalStorageData();
             });
 
@@ -630,7 +643,7 @@
         }
 
         async function saveMemberToCloud(memberObj) {
-            if (db && currentUser) {
+            if (db) {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(memberObj.id)), memberObj);
             } else {
                 const idx = members.findIndex(m => String(m.id) === String(memberObj.id));
@@ -642,7 +655,7 @@
         }
 
         async function removeMemberFromCloud(memberId) {
-            if (db && currentUser) {
+            if (db) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(memberId)));
             } else {
                 members = members.filter(m => String(m.id) !== String(memberId));
@@ -654,7 +667,7 @@
         async function saveLogToCloud(logObj) {
             if (!logObj.action) logObj.action = 'update';
             sendToGoogleSheets(logObj);
-            if (db && currentUser) {
+            if (db) {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logObj.id)), logObj);
             } else {
                 const idx = logs.findIndex(l => String(l.id) === String(logObj.id));
@@ -671,7 +684,7 @@
                 action: 'delete' 
             });
 
-            if (db && currentUser) {
+            if (db) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logId)));
             } else {
                 logs = logs.filter(l => String(l.id) !== String(logId));
@@ -1284,6 +1297,18 @@
                     textarea.value = savedConfig;
                 }
             }
+
+            const connStatusEl = document.getElementById('firebaseConnectionStatus');
+            if (connStatusEl) {
+                if (db) {
+                    connStatusEl.innerHTML = `<span class="text-emerald-600 font-bold">✓ Terhubung ke Cloud Real-time Database</span>`;
+                } else if (savedConfig) {
+                    connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Mencoba terhubung ke Firebase...</span>`;
+                } else {
+                    connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Belum Diatur (Gunakan Firebase Config)</span>`;
+                }
+            }
+
             openModal('modalFirebase');
         }
 

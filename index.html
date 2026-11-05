@@ -1277,8 +1277,52 @@
         function openFirebaseModal() {
             const savedConfig = localStorage.getItem('firebase_custom_config') || '';
             const textarea = document.getElementById('firebaseConfigInput');
-            if (textarea) textarea.value = savedConfig;
+            if (textarea) {
+                try {
+                    textarea.value = savedConfig ? JSON.stringify(JSON.parse(savedConfig), null, 2) : '';
+                } catch(e) {
+                    textarea.value = savedConfig;
+                }
+            }
             openModal('modalFirebase');
+        }
+
+        // Auto-converter smart parser untuk format Firebase Console / JavaScript / JSON
+        function parseFirebaseConfigInput(rawVal) {
+            if (!rawVal) return null;
+            let input = rawVal.trim();
+            
+            // 1. Coba parse JSON murni
+            try {
+                return JSON.parse(input);
+            } catch(e) {}
+
+            // 2. Ambil isi di dalam kurung kurawal { ... } jika disalin beserta 'const firebaseConfig ='
+            const firstBrace = input.indexOf('{');
+            const lastBrace = input.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                input = input.substring(firstBrace, lastBrace + 1);
+            }
+
+            // 3. Konversi format Objek JS (key tanpa tanda kutip) ke JSON valid
+            let cleaned = input
+                .replace(/([{,]\s*)([a-zA-Z0-9_$]+)\s*:/g, '$1"$2":') // Quote unquoted keys (apiKey: -> "apiKey":)
+                .replace(/'/g, '"')                                  // Single quote to double quote
+                .replace(/,\s*([}\]])/g, '$1');                      // Hapus koma gantung di akhir
+
+            try {
+                return JSON.parse(cleaned);
+            } catch(e) {}
+
+            // 4. Evaluator aman berbasis Objek JavaScript
+            try {
+                const parsed = (new Function(`return (${input})`))();
+                if (parsed && typeof parsed === 'object' && (parsed.projectId || parsed.apiKey)) {
+                    return parsed;
+                }
+            } catch(e) {}
+
+            return null;
         }
 
         function handleSaveFirebaseConfig(e) {
@@ -1294,14 +1338,14 @@
                 return;
             }
 
-            try {
-                JSON.parse(val);
-                localStorage.setItem('firebase_custom_config', val);
+            const configObj = parseFirebaseConfigInput(val);
+            if (configObj && (configObj.projectId || configObj.apiKey)) {
+                localStorage.setItem('firebase_custom_config', JSON.stringify(configObj));
                 closeModal('modalFirebase');
-                showToast("Konfigurasi Real-time Cloud disimpan!");
+                showToast("Konfigurasi Real-time Cloud berhasil disimpan!");
                 setTimeout(() => location.reload(), 800);
-            } catch(err) {
-                showToast("Format JSON Firebase Config tidak valid!");
+            } else {
+                showToast("Format Firebase Config tidak valid! Salin ulang dari Firebase Console.");
             }
         }
 

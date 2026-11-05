@@ -364,7 +364,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-lg text-gymDark">Integrasi Google Sheets</h3>
-                        <p class="text-xs text-gray-500">Otomatis simpan setiap cutting sesi ke Google Spreadsheet</p>
+                        <p class="text-xs text-gray-500">Otomatis simpan/edit/hapus cutting sesi ke Google Spreadsheet</p>
                     </div>
                 </div>
                 <button onclick="closeModal('modalGoogleSheets')" class="text-gray-400 hover:text-gray-600">
@@ -1226,6 +1226,9 @@
         }
 
         async function removeLogFromCloud(logId) {
+            // Kirim sinyal HAPUS ke Google Sheets
+            sendToGoogleSheets({ id: String(logId), action: 'delete' });
+
             if (db && currentUser) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logId)));
             } else {

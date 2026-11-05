@@ -828,7 +828,8 @@
                 memberName: member.name,
                 amountCut: 1,
                 sisaSesi: Math.max(0, sisa),
-                notes: 'Potong instan 1 sesi'
+                notes: 'Potong instan 1 sesi',
+                action: 'create'
             };
 
             await saveLogToCloud(newLog);
@@ -878,7 +879,8 @@
                 memberName: member.name,
                 amountCut: amount,
                 sisaSesi: sisa,
-                notes: notes
+                notes: notes,
+                action: 'create'
             };
 
             await saveLogToCloud(newLog);
@@ -982,6 +984,7 @@
             log.date = document.getElementById('editLogDate').value;
             log.time = document.getElementById('editLogTime').value;
             log.notes = document.getElementById('editLogNotes').value || '-';
+            log.action = 'update';
 
             await saveLogToCloud(log);
             closeModal('modalEditLog');
@@ -1214,6 +1217,7 @@
         }
 
         async function saveLogToCloud(logObj) {
+            if (!logObj.action) logObj.action = 'update';
             sendToGoogleSheets(logObj);
             if (db && currentUser) {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logObj.id)), logObj);
@@ -1226,8 +1230,11 @@
         }
 
         async function removeLogFromCloud(logId) {
-            // Kirim sinyal HAPUS ke Google Sheets
-            sendToGoogleSheets({ id: String(logId), action: 'delete' });
+            // Kirim instruksi HAPUS secara eksplisit ke Google Sheets
+            sendToGoogleSheets({ 
+                id: String(logId), 
+                action: 'delete' 
+            });
 
             if (db && currentUser) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logId)));
@@ -1239,17 +1246,19 @@
 
         // Google Sheets Integrator
         function sendToGoogleSheets(logObj) {
-            const scriptUrl = localStorage.getItem('google_sheets_url');
+            let scriptUrl = localStorage.getItem('google_sheets_url');
+            if (!scriptUrl) return;
+            scriptUrl = scriptUrl.trim();
             if (!scriptUrl) return;
 
             try {
                 fetch(scriptUrl, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(logObj)
                 }).then(() => {
-                    console.log("Data cutting terkirim ke Google Sheets.");
+                    console.log("Data cutting terkirim/diperbarui/dihapus di Google Sheets.");
                 }).catch(err => console.error("Error Google Sheets send:", err));
             } catch (err) {
                 console.error("Fetch Google Sheets Error:", err);

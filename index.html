@@ -507,6 +507,8 @@
         let dateSortAsc = true; // true: Old -> New, false: New -> Old
         let pendingDeleteType = null;
         let pendingDeleteId = null;
+        let isFirstMembersSnapshot = true;
+        let isFirstLogsSnapshot = true;
 
         const defaultMembers = [
             { id: '1', name: 'Andi Wijaya', ptName: 'Veli', totalSessions: 20, sessionsUsed: 6, lastCut: '2026-11-04 jam 15:48' },
@@ -586,12 +588,26 @@
             const statusTextEl = document.getElementById('cloudStatusText');
             const connStatusEl = document.getElementById('firebaseConnectionStatus');
 
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'members'), (snapshot) => {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'members'), async (snapshot) => {
+                if (snapshot.empty && isFirstMembersSnapshot) {
+                    isFirstMembersSnapshot = false;
+                    const savedMembers = localStorage.getItem('pt_members');
+                    const initialMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
+                    for (const m of initialMembers) {
+                        try {
+                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(m.id)), m);
+                        } catch(e){}
+                    }
+                    return;
+                }
+                isFirstMembersSnapshot = false;
+
                 const cloudMembers = [];
                 snapshot.forEach((doc) => {
                     cloudMembers.push({ id: doc.id, ...doc.data() });
                 });
-                members = cloudMembers.length > 0 ? cloudMembers : defaultMembers;
+                members = cloudMembers;
+                localStorage.setItem('pt_members', JSON.stringify(members));
                 renderPTTabs();
                 renderMembers();
 
@@ -610,12 +626,26 @@
                 loadLocalStorageData();
             });
 
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'logs'), (snapshot) => {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'logs'), async (snapshot) => {
+                if (snapshot.empty && isFirstLogsSnapshot) {
+                    isFirstLogsSnapshot = false;
+                    const savedLogs = localStorage.getItem('pt_logs');
+                    const initialLogs = savedLogs ? JSON.parse(savedLogs) : defaultLogs;
+                    for (const l of initialLogs) {
+                        try {
+                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(l.id)), l);
+                        } catch(e){}
+                    }
+                    return;
+                }
+                isFirstLogsSnapshot = false;
+
                 const cloudLogs = [];
                 snapshot.forEach((doc) => {
                     cloudLogs.push({ id: doc.id, ...doc.data() });
                 });
-                logs = cloudLogs.length > 0 ? cloudLogs : defaultLogs;
+                logs = cloudLogs;
+                localStorage.setItem('pt_logs', JSON.stringify(logs));
                 renderLogs();
             }, (error) => {
                 console.warn("Error cloud logs:", error);
@@ -624,17 +654,19 @@
 
         function loadLocalStorageData() {
             const savedMembers = localStorage.getItem('pt_members');
-            if (savedMembers) {
-                try { members = JSON.parse(savedMembers); } catch(e) { members = defaultMembers; }
+            if (savedMembers !== null) {
+                try { members = JSON.parse(savedMembers); } catch(e) { members = [...defaultMembers]; }
             } else {
                 members = [...defaultMembers];
+                localStorage.setItem('pt_members', JSON.stringify(members));
             }
 
             const savedLogs = localStorage.getItem('pt_logs');
-            if (savedLogs) {
-                try { logs = JSON.parse(savedLogs); } catch(e) { logs = defaultLogs; }
+            if (savedLogs !== null) {
+                try { logs = JSON.parse(savedLogs); } catch(e) { logs = [...defaultLogs]; }
             } else {
                 logs = [...defaultLogs];
+                localStorage.setItem('pt_logs', JSON.stringify(logs));
             }
 
             renderPTTabs();
@@ -775,8 +807,30 @@
             filtered.forEach(m => {
                 const sisa = Math.max(0, m.totalSessions - m.sessionsUsed);
                 const percent = Math.min(100, Math.round((m.sessionsUsed / m.totalSessions) * 100));
-                const statusBg = sisa > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
-                const statusText = sisa > 0 ? 'AKTIF' : 'HABIS';
+                
+                // Indikator Warna Dinamis Berdasarkan Sisa Sesi
+                let statusBg, statusText, textColor, barBg;
+                if (sisa === 0) {
+                    statusBg = 'bg-red-100 text-red-800 border border-red-200';
+                    statusText = 'HABIS';
+                    textColor = 'text-red-600 font-bold';
+                    barBg = 'bg-red-500';
+                } else if (sisa === 1) {
+                    statusBg = 'bg-orange-100 text-orange-800 border border-orange-200';
+                    statusText = 'SISA 1 SESI';
+                    textColor = 'text-orange-600 font-bold';
+                    barBg = 'bg-orange-500';
+                } else if (sisa <= 3) {
+                    statusBg = 'bg-amber-100 text-amber-800 border border-amber-200';
+                    statusText = 'MENDEKATI HABIS';
+                    textColor = 'text-amber-600 font-bold';
+                    barBg = 'bg-amber-400';
+                } else {
+                    statusBg = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+                    statusText = 'AKTIF';
+                    textColor = 'text-emerald-600 font-bold';
+                    barBg = 'bg-emerald-500';
+                }
 
                 html += `
                     <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-red-200 transition">
@@ -787,7 +841,7 @@
                             <div>
                                 <div class="flex items-center gap-2">
                                     <h3 class="font-bold text-sm text-gymDark group-hover:text-gymRed transition">${m.name}</h3>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBg}">${statusText}</span>
+                                    <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full ${statusBg}">${statusText}</span>
                                 </div>
                                 <p class="text-xs text-gray-400">PT: <span class="font-semibold text-gray-600">${m.ptName}</span> ${m.lastCut ? '• Cut terakhir: ' + m.lastCut : ''}</p>
                             </div>
@@ -797,10 +851,10 @@
                             <div class="w-full sm:w-48">
                                 <div class="flex justify-between text-xs mb-1">
                                     <span class="text-gray-500 font-medium">Terpakai: <b class="text-gray-700">${m.sessionsUsed}/${m.totalSessions}</b></span>
-                                    <span class="font-bold ${sisa > 0 ? 'text-gymRed' : 'text-gray-400'}">Sisa: ${sisa} Sesi</span>
+                                    <span class="${textColor}">Sisa: ${sisa} Sesi</span>
                                 </div>
                                 <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-gymRed h-2 rounded-full transition-all duration-300" style="width: ${percent}%"></div>
+                                    <div class="${barBg} h-2 rounded-full transition-all duration-300" style="width: ${percent}%"></div>
                                 </div>
                             </div>
 

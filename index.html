@@ -1290,7 +1290,13 @@
         // Auto-converter smart parser untuk format Firebase Console / JavaScript / JSON
         function parseFirebaseConfigInput(rawVal) {
             if (!rawVal) return null;
-            let input = rawVal.trim();
+            
+            // Normalize non-breaking spaces (\u00a0), zero-width spaces, and quotes
+            let input = rawVal
+                .replace(/[\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\u200b-\u200d\ufeff]/g, ' ')
+                .replace(/[“”]/g, '"')
+                .replace(/[‘’]/g, "'")
+                .trim();
             
             // 1. Coba parse JSON murni
             try {

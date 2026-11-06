@@ -830,15 +830,23 @@
             }
         }
 
-        function showLoginModal() {
+        function updateLoginUserSelect() {
             const selectEl = document.getElementById('loginUserSelect');
             if (selectEl) {
+                const currentValue = selectEl.value;
                 let html = `<option value="Head Coach">📋 Head Coach</option>`;
                 ptList.forEach(pt => {
                     html += `<option value="${pt}">🏋️ Trainer: ${pt}</option>`;
                 });
                 selectEl.innerHTML = html;
+                if (currentValue && Array.from(selectEl.options).some(o => o.value === currentValue)) {
+                    selectEl.value = currentValue;
+                }
             }
+        }
+
+        function showLoginModal() {
+            updateLoginUserSelect();
             switchLoginMode('staff');
             openModal('modalLogin');
         }
@@ -1011,6 +1019,9 @@
         function initApp() {
             setupEventListeners();
             
+            // Immediate load from local storage cache for instant UI rendering
+            loadLocalStorageData();
+
             const savedSession = sessionStorage.getItem('active_user');
             if (savedSession) {
                 try {
@@ -1031,6 +1042,10 @@
 
             if (!activeUser) {
                 showLoginModal();
+            } else {
+                renderPTTabs();
+                renderMembers();
+                renderLogs();
             }
         }
 
@@ -1090,6 +1105,8 @@
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), async (docSnap) => {
                 if (!docSnap.exists() && isFirstPTsSnapshot) {
                     isFirstPTsSnapshot = false;
+                    updateLoginUserSelect();
+                    renderPTTabs();
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), { list: ptList });
                     return;
                 }
@@ -1099,6 +1116,7 @@
                     if (data && Array.isArray(data.list)) {
                         ptList = data.list;
                         localStorage.setItem('pt_list', JSON.stringify(ptList));
+                        updateLoginUserSelect();
                         renderPTTabs();
                         renderMembers();
                         renderLogs();
@@ -1114,6 +1132,9 @@
                     isFirstMembersSnapshot = false;
                     const savedMembers = localStorage.getItem('pt_members');
                     const initialMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
+                    members = initialMembers;
+                    renderPTTabs();
+                    renderMembers();
                     for (const m of initialMembers) {
                         try {
                             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(m.id)), m);
@@ -1152,6 +1173,8 @@
                     isFirstLogsSnapshot = false;
                     const savedLogs = localStorage.getItem('pt_logs');
                     const initialLogs = savedLogs ? JSON.parse(savedLogs) : defaultLogs;
+                    logs = initialLogs;
+                    renderLogs();
                     for (const l of initialLogs) {
                         try {
                             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(l.id)), l);
@@ -1174,6 +1197,11 @@
         }
 
         function loadLocalStorageData() {
+            const savedPTs = localStorage.getItem('pt_list');
+            if (savedPTs !== null) {
+                try { ptList = JSON.parse(savedPTs); } catch(e) {}
+            }
+
             const savedMembers = localStorage.getItem('pt_members');
             if (savedMembers !== null) {
                 try { members = JSON.parse(savedMembers); } catch(e) { members = [...defaultMembers]; }
@@ -1207,6 +1235,7 @@
                 try { userPins = JSON.parse(savedPins); } catch(e) { userPins = {}; }
             }
 
+            updateLoginUserSelect();
             renderPTTabs();
             renderMembers();
             renderLogs();
@@ -1813,9 +1842,13 @@
             const isAdmin = activeUser && activeUser.role === 'admin';
 
             let filtered = members.filter(m => {
-                if (isPT && m.ptName !== activeUser.name) return false;
-                if (!isPT && selectedPT !== 'Semua PT' && m.ptName !== selectedPT) return false;
-                if (query && !m.name.toLowerCase().includes(query) && !m.ptName.toLowerCase().includes(query)) return false;
+                const memberPT = (m.ptName || '').trim();
+                const activePTName = (activeUser && activeUser.name || '').trim();
+                const selPT = (selectedPT || '').trim();
+
+                if (isPT && memberPT !== activePTName) return false;
+                if (!isPT && selPT !== 'Semua PT' && memberPT !== selPT) return false;
+                if (query && !m.name.toLowerCase().includes(query) && !memberPT.toLowerCase().includes(query)) return false;
                 return true;
             });
 

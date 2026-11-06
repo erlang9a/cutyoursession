@@ -50,15 +50,15 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end flex-wrap">
-                <!-- Status & Tombol Real-time Cloud -->
-                <button id="btnFirebaseConfig" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                <!-- Status & Tombol Real-time Cloud (Diumbunkan / Hidden) -->
+                <button id="btnFirebaseConfig" class="hidden flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition items-center justify-center gap-1.5">
                     <svg class="w-4 h-4 text-amber-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
                     <span id="cloudStatusText">Cloud Realtime</span>
                 </button>
-                <!-- Tombol Google Sheets -->
-                <button id="btnGoogleSheets" class="flex-1 sm:flex-none bg-green-700 hover:bg-green-800 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                <!-- Tombol Google Sheets (Diterapkan Hidden) -->
+                <button id="btnGoogleSheets" class="hidden flex-1 sm:flex-none bg-green-700 hover:bg-green-800 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition items-center justify-center gap-1.5">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 4h-7v3h7V7zm0 5h-7v3h7v-3zm-9-5H5v3h5V7zm0 5H5v3h5v-3zm0 5H5v3h5v-3zm9 0h-7v3h7v-3z"/>
                     </svg>
@@ -483,15 +483,35 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // =========================================================================
+        // KODE INTEGRASI LANGSUNG (BISA DIPASANG DI SINI AGAR OTOMATIS AKTIF)
+        // =========================================================================
+        
+        // 1. Masukkan URL Web App Google Script Anda di dalam tanda petik di bawah ini:
+        const HARDCODED_GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwLH31Qfyxbedsh8LGJk6AOYt8dM_0F6IyN8pgbYbJUHuQ7rOab8ELqbFCB9ZVjC8wkdg/exec"; 
+
+        // 2. Masukkan Firebase Config Anda di bawah ini (jika disi, otomatis real-time):
+        const HARDCODED_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBy43lbTBPQj9zV0JuAUUk--Hz4bu74R4g",
+            authDomain: "cutyoursession-ff7d0.firebaseapp.com",
+            projectId: "cutyoursession-ff7d0",
+            storageBucket: "cutyoursession-ff7d0.firebasestorage.app",
+            messagingSenderId: "582704482677",
+            appId: "1:582704482677:web:a2329f5fc835dd17bbeb3c"
+        };
+        // =========================================================================
+
         // Global State & Data Storage
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-gym-app';
-        let firebaseConfig = null;
+        let firebaseConfig = HARDCODED_FIREBASE_CONFIG;
 
-        const savedCustomDbConfig = localStorage.getItem('firebase_custom_config');
-        if (savedCustomDbConfig) {
-            try { firebaseConfig = JSON.parse(savedCustomDbConfig); } catch(e) {}
-        } else if (typeof __firebase_config !== 'undefined') {
-            try { firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
+        if (!firebaseConfig || !firebaseConfig.projectId) {
+            const savedCustomDbConfig = localStorage.getItem('firebase_custom_config');
+            if (savedCustomDbConfig) {
+                try { firebaseConfig = JSON.parse(savedCustomDbConfig); } catch(e) {}
+            } else if (typeof __firebase_config !== 'undefined') {
+                try { firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
+            }
         }
 
         let db = null;
@@ -765,7 +785,7 @@
         }
 
         function sendToGoogleSheets(logObj) {
-            let scriptUrl = localStorage.getItem('google_sheets_url');
+            let scriptUrl = HARDCODED_GOOGLE_SHEETS_URL || localStorage.getItem('google_sheets_url');
             if (!scriptUrl) return;
             scriptUrl = scriptUrl.trim();
             if (!scriptUrl) return;
@@ -787,17 +807,21 @@
             const container = document.getElementById('ptTabsContainer');
             if (!container) return;
 
+            const totalMembers = members.length;
             let html = `
-                <button onclick="selectPT('Semua PT')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${selectedPT === 'Semua PT' ? 'bg-gymRed text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
-                    Semua PT
+                <button onclick="selectPT('Semua PT')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${selectedPT === 'Semua PT' ? 'bg-gymRed text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+                    <span>Semua PT</span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold ${selectedPT === 'Semua PT' ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-700'}">${totalMembers}</span>
                 </button>
             `;
 
             ptList.forEach(pt => {
+                const count = members.filter(m => m.ptName === pt).length;
                 const isSelected = selectedPT === pt;
                 html += `
-                    <button onclick="selectPT('${pt}')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${isSelected ? 'bg-gymRed text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
-                        ${pt}
+                    <button onclick="selectPT('${pt}')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${isSelected ? 'bg-gymRed text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+                        <span>${pt}</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold ${isSelected ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-700'}">${count}</span>
                     </button>
                 `;
             });

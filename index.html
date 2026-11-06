@@ -138,7 +138,7 @@
                     </h2>
                     <p class="text-xs text-gray-500">Booking yang sudah lewat jamnya akan otomatis memotong sesi & masuk ke riwayat cutting secara real-time.</p>
                 </div>
-                <button onclick="openAddBookingModal()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1">
+                <button id="btnSectionAddBooking" onclick="openAddBookingModal()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1">
                     + Tambah Booking
                 </button>
             </div>
@@ -919,6 +919,8 @@
             const btnAddMember = document.getElementById('btnAddMember');
             const btnExportExcel = document.getElementById('btnExportExcel');
             const btnApprovals = document.getElementById('btnApprovals');
+            const btnOpenBookingModal = document.getElementById('btnOpenBookingModal');
+            const btnSectionAddBooking = document.getElementById('btnSectionAddBooking');
 
             if (!activeUser) {
                 if (badge) badge.classList.add('hidden');
@@ -926,6 +928,8 @@
                 if (btnAddMember) btnAddMember.classList.add('hidden');
                 if (btnExportExcel) btnExportExcel.classList.add('hidden');
                 if (btnApprovals) btnApprovals.classList.add('hidden');
+                if (btnOpenBookingModal) btnOpenBookingModal.classList.add('hidden');
+                if (btnSectionAddBooking) btnSectionAddBooking.classList.add('hidden');
                 return;
             }
 
@@ -950,16 +954,23 @@
                 if (btnAddMember) btnAddMember.classList.remove('hidden');
                 if (btnExportExcel) btnExportExcel.classList.remove('hidden');
                 if (btnApprovals) btnApprovals.classList.remove('hidden');
+                if (btnOpenBookingModal) btnOpenBookingModal.classList.remove('hidden');
+                if (btnSectionAddBooking) btnSectionAddBooking.classList.remove('hidden');
             } else if (activeUser.role === 'head_coach') {
                 if (btnManagePT) btnManagePT.classList.add('hidden');
                 if (btnAddMember) btnAddMember.classList.add('hidden');
                 if (btnExportExcel) btnExportExcel.classList.remove('hidden');
                 if (btnApprovals) btnApprovals.classList.add('hidden');
+                if (btnOpenBookingModal) btnOpenBookingModal.classList.add('hidden');
+                if (btnSectionAddBooking) btnSectionAddBooking.classList.add('hidden');
             } else { // PT / Trainer
                 if (btnManagePT) btnManagePT.classList.add('hidden');
                 if (btnAddMember) btnAddMember.classList.add('hidden');
                 if (btnExportExcel) btnExportExcel.classList.add('hidden');
                 if (btnApprovals) btnApprovals.classList.add('hidden');
+                if (btnOpenBookingModal) btnOpenBookingModal.classList.remove('hidden');
+                if (btnSectionAddBooking) btnSectionAddBooking.style.display = '';
+                if (btnSectionAddBooking) btnSectionAddBooking.classList.remove('hidden');
             }
 
             updateApprovalBadge();
@@ -1353,6 +1364,10 @@
         function openAddBookingModal() {
             if (!activeUser) {
                 showToast("Silakan login terlebih dahulu.");
+                return;
+            }
+            if (activeUser.role === 'head_coach') {
+                showToast("Akses Ditolak: Head Coach hanya dapat melihat jadwal booking.");
                 return;
             }
 

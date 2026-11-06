@@ -49,9 +49,9 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end flex-wrap">
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
                 <!-- User Profile & Logout Button -->
-                <div id="userProfileBadge" class="hidden flex items-center gap-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700 text-xs text-white">
+                <div id="userProfileBadge" class="hidden flex items-center gap-2 bg-gray-800 px-2.5 py-1 rounded-lg border border-gray-700 text-xs text-white h-8">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span id="userNameDisplay" class="font-bold">Admin</span>
                     <span id="userRoleDisplay" class="bg-gymRed text-[10px] px-2 py-0.5 rounded font-semibold text-white">ADMIN</span>
@@ -63,45 +63,45 @@
                     </button>
                 </div>
                 <!-- Tombol Persetujuan Admin (Baru) -->
-                <button id="btnApprovals" onclick="openApprovalsModal()" class="hidden flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5 relative">
-                    <svg class="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="btnApprovals" onclick="openApprovalsModal()" class="hidden bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5 relative">
+                    <svg class="w-3.5 h-3.5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                     </svg>
                     <span>Persetujuan</span>
-                    <span id="approvalBadgeCount" class="bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ml-1">0</span>
+                    <span id="approvalBadgeCount" class="bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ml-0.5">0</span>
                 </button>
                 <!-- Status & Tombol Real-time Cloud (Diumbunkan / Hidden) -->
-                <button id="btnFirebaseConfig" class="hidden flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition items-center justify-center gap-1.5">
-                    <svg class="w-4 h-4 text-amber-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="btnFirebaseConfig" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition items-center justify-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-amber-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
                     <span id="cloudStatusText">Cloud Realtime</span>
                 </button>
                 <!-- Tombol Google Sheets (Diterapkan Hidden) -->
-                <button id="btnGoogleSheets" class="hidden flex-1 sm:flex-none bg-green-700 hover:bg-green-800 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition items-center justify-center gap-1.5">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <button id="btnGoogleSheets" class="hidden bg-green-700 hover:bg-green-800 text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition items-center justify-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 4h-7v3h7V7zm0 5h-7v3h7v-3zm-9-5H5v3h5V7zm0 5H5v3h5v-3zm0 5H5v3h5v-3zm9 0h-7v3h7v-3z"/>
                     </svg>
                     Google Sheets
                 </button>
-                <!-- Export Excel (ID Added for Role Control) -->
-                <button id="btnExportExcel" onclick="exportToExcel()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Export Excel -->
+                <button id="btnExportExcel" onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Export Excel
                 </button>
-                <!-- Kelola PT (ID Added for Role Control) -->
-                <button id="btnManagePT" onclick="openManagePTModal()" class="flex-1 sm:flex-none bg-gray-700 hover:bg-gray-600 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Kelola PT -->
+                <button id="btnManagePT" onclick="openManagePTModal()" class="bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
                     Kelola PT
                 </button>
                 <!-- Tambah Member -->
-                <button onclick="openAddMemberModal()" class="flex-1 sm:flex-none bg-gymRed hover:bg-gymRedHover text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="btnAddMember" onclick="openAddMemberModal()" class="bg-gymRed hover:bg-gymRedHover text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                     </svg>
                     Tambah
@@ -140,7 +140,7 @@
             </div>
 
             <!-- List Member Container -->
-            <div id="memberListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div id="memberListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 <!-- Member Rows akan di-render di sini -->
             </div>
         </div>
@@ -217,14 +217,26 @@
                 <p class="text-xs text-gray-500">Pilih akun Anda dan masukkan PIN/Password untuk masuk.</p>
             </div>
             <form id="formLogin" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Pilih Akun / User</label>
-                    <select id="loginUserSelect" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none bg-white font-semibold text-gray-700"></select>
+                <!-- Tab Mode Login: Separasi Admin & Trainer/Coach -->
+                <div class="grid grid-cols-2 gap-1 bg-gray-100 p-1 rounded-xl text-xs font-semibold">
+                    <button type="button" id="btnLoginTabStaff" onclick="switchLoginMode('staff')" class="py-1.5 rounded-lg bg-white text-gymDark shadow-sm transition font-bold">👥 Trainer / Coach</button>
+                    <button type="button" id="btnLoginTabAdmin" onclick="switchLoginMode('admin')" class="py-1.5 rounded-lg text-gray-500 hover:text-gymDark transition font-semibold">🔑 Admin</button>
                 </div>
+
+                <div id="loginStaffSelectContainer">
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Pilih Akun / User</label>
+                    <select id="loginUserSelect" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none bg-white font-semibold text-gray-700"></select>
+                </div>
+
+                <div id="loginAdminNoticeContainer" class="hidden bg-red-50 border border-red-100 p-3 rounded-lg text-xs text-gymRed font-bold text-center">
+                    🔑 Mode Login Account: Admin
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-gray-600 uppercase mb-1">PIN / Password</label>
                     <input type="password" id="loginPinInput" required placeholder="Masukkan PIN" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
-                    <p class="text-[10px] text-gray-400 mt-1">* Default PIN: <span class="font-bold text-gray-600">1234</span> (Admin: <span class="font-bold text-gray-600">1234</span> atau <span class="font-bold text-gray-600">admin</span>)</p>
+                    <p class="text-[10px] text-gray-400 mt-1">* PIN Default untuk semua akun: <span class="font-bold text-gray-600">1234</span> (atau <span class="font-bold text-gray-600">admin</span> / <span class="font-bold text-gray-600">headcoach</span>)</p>
+                    <p class="text-[10px] text-amber-600 font-medium mt-1 flex items-center gap-1">💡 Lupa PIN? Hubungi Admin untuk reset PIN.</p>
                 </div>
                 <button type="submit" class="w-full bg-gymRed hover:bg-gymRedHover text-white py-2.5 rounded-lg text-xs font-semibold shadow transition flex items-center justify-center gap-2">
                     🔑 Masuk ke Aplikasi
@@ -656,59 +668,58 @@
         // Login & Session State (Baru)
         let activeUser = null; // { name: 'Admin', role: 'admin' } atau { name: 'Raihan', role: 'pt' }
 
-        let dateSortAsc = true; // true: Old -> New, false: New -> Old
-        let pendingDeleteType = null;
-        let pendingDeleteId = null;
+        let currentLoginMode = 'staff'; // 'staff' or 'admin'
+        let dateSortAsc = false;
         let isFirstMembersSnapshot = true;
         let isFirstLogsSnapshot = true;
         let isFirstPTsSnapshot = true;
+        let pendingDeleteType = null;
+        let pendingDeleteId = null;
 
         const defaultMembers = [
-            { id: '1', name: 'Andi Wijaya', phone: '081234567890', ptName: 'Veli', totalSessions: 20, sessionsUsed: 6, lastCut: '2026-11-04 jam 15:48' },
-            { id: '2', name: 'Budi Santoso', phone: '081987654321', ptName: 'Raihan', totalSessions: 12, sessionsUsed: 4, lastCut: '2026-03-01 jam 10:15' },
-            { id: '3', name: 'Doni Pratama', phone: '085711223344', ptName: 'Rivo', totalSessions: 8, sessionsUsed: 3, lastCut: '2026-03-01 jam 17:45' },
-            { id: '4', name: 'Kevin Tan', phone: '087899887766', ptName: 'Jong Han', totalSessions: 15, sessionsUsed: 4, lastCut: '2026-11-04 jam 15:48' },
-            { id: '5', name: 'Maya Putri', phone: '081344556677', ptName: 'Thomas', totalSessions: 10, sessionsUsed: 10, lastCut: '2026-02-28 jam 11:20' },
-            { id: '6', name: 'Siti Aminah', phone: '082155667788', ptName: 'Raihan', totalSessions: 10, sessionsUsed: 9, lastCut: '2026-03-02 jam 14:30' }
+            { id: '1', name: 'Budi Santoso', phone: '081234567890', ptName: 'Raihan', totalSessions: 12, sessionsUsed: 5, lastCut: '06-11-2026 jam 16:08' },
+            { id: '2', name: 'Siti Aminah', phone: '085678901234', ptName: 'Raihan', totalSessions: 10, sessionsUsed: 10, lastCut: '06-11-2026 jam 16:10' },
+            { id: '3', name: 'Kevin Tan', phone: '081987654321', ptName: 'Jong Han', totalSessions: 15, sessionsUsed: 4, lastCut: '04-11-2026 jam 15:48' },
+            { id: '4', name: 'Doni Pratama', phone: '087812345678', ptName: 'Rivo', totalSessions: 8, sessionsUsed: 3, lastCut: '01-03-2026 jam 17:45' }
         ];
 
         const defaultLogs = [
-            { id: '101', date: '2026-11-04', time: '15:48', ptName: 'Veli', memberName: 'Andi Wijaya', amountCut: 1, sisaSesi: 14, notes: 'Latihan Upper Body' },
-            { id: '102', date: '2026-03-01', time: '10:15', ptName: 'Raihan', memberName: 'Budi Santoso', amountCut: 1, sisaSesi: 8, notes: 'Latihan Chest & Triceps' },
-            { id: '103', date: '2026-03-01', time: '17:45', ptName: 'Rivo', memberName: 'Doni Pratama', amountCut: 1, sisaSesi: 5, notes: 'Latihan Leg Day' },
-            { id: '104', date: '2026-11-04', time: '15:48', ptName: 'Jong Han', memberName: 'Kevin Tan', amountCut: 1, sisaSesi: 11, notes: 'Latihan Cardio & Core' },
-            { id: '105', date: '2026-02-28', time: '11:20', ptName: 'Thomas', memberName: 'Maya Putri', amountCut: 1, sisaSesi: 0, notes: 'Sesi Terakhir Leg Day' },
-            { id: '106', date: '2026-03-02', time: '14:30', ptName: 'Raihan', memberName: 'Siti Aminah', amountCut: 1, sisaSesi: 1, notes: 'Latihan Full Body' }
+            { id: '101', date: '06-11-2026', time: '16:08', ptName: 'Raihan', memberName: 'Budi Santoso', amountCut: 1, sisaSesi: 7, notes: 'Latihan Chest & Triceps' },
+            { id: '102', date: '06-11-2026', time: '16:10', ptName: 'Raihan', memberName: 'Siti Aminah', amountCut: 1, sisaSesi: 0, notes: 'Latihan Back Day (Sesi Terakhir)' }
         ];
+
+        function isoToDMY(isoDate) {
+            if (!isoDate) return '';
+            if (isoDate.includes('-') && isoDate.split('-')[0].length === 4) {
+                const parts = isoDate.split('-');
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return isoDate;
+        }
+
+        function dmyToISO(dmyDate) {
+            if (!dmyDate) return '';
+            if (dmyDate.includes('-') && dmyDate.split('-')[2]?.length === 4) {
+                const parts = dmyDate.split('-');
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dmyDate;
+        }
 
         function formatWAUrl(phone) {
             if (!phone) return '#';
-            let clean = phone.replace(/[^0-9]/g, '');
-            if (clean.startsWith('0')) clean = '62' + clean.slice(1);
-            return `https://wa.me/${clean}`;
-        }
-
-        // Init App
-        window.addEventListener('DOMContentLoaded', async () => {
-            loadLocalPTs();
-            loadLocalUserPins();
-            initFirebaseOrLocal();
-            setupEventListeners();
-            checkUserSession();
-        });
-
-        function loadLocalUserPins() {
-            const savedPins = localStorage.getItem('user_pins');
-            if (savedPins) {
-                try { userPins = JSON.parse(savedPins); } catch(e) {}
+            let clean = String(phone).replace(/\D/g, '');
+            if (clean.startsWith('0')) {
+                clean = '62' + clean.slice(1);
             }
+            return `https://wa.me/${clean}`;
         }
 
         function getUserPin(userName) {
             if (userPins && userPins[userName]) {
-                return String(userPins[userName]);
+                return userPins[userName];
             }
-            return '1234'; // Default PIN jika belum diubah
+            return '1234';
         }
 
         async function saveUserPinsToCloud(newPins) {
@@ -717,116 +728,162 @@
             if (db) {
                 try {
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pins'), { pins: userPins });
-                } catch (e) {
-                    console.warn("Error saving PIN list to cloud:", e);
+                } catch(e) {
+                    console.warn("Error saving user PINs to cloud:", e);
                 }
             }
         }
 
-        // User Auth & Session Logic (Baru)
-        function checkUserSession() {
-            const savedSession = sessionStorage.getItem('active_gym_user');
-            if (savedSession) {
-                try {
-                    activeUser = JSON.parse(savedSession);
-                    applyUserSessionUI();
-                    return;
-                } catch(e) {}
+        function switchLoginMode(mode) {
+            currentLoginMode = mode;
+            const tabStaff = document.getElementById('btnLoginTabStaff');
+            const tabAdmin = document.getElementById('btnLoginTabAdmin');
+            const selectContainer = document.getElementById('loginStaffSelectContainer');
+            const selectEl = document.getElementById('loginUserSelect');
+            const adminNotice = document.getElementById('loginAdminNoticeContainer');
+
+            if (mode === 'admin') {
+                if (tabStaff) tabStaff.className = 'py-1.5 rounded-lg text-gray-500 hover:text-gymDark transition font-semibold';
+                if (tabAdmin) tabAdmin.className = 'py-1.5 rounded-lg bg-gymRed text-white shadow-sm transition font-bold';
+                if (selectContainer) selectContainer.classList.add('hidden');
+                if (adminNotice) adminNotice.classList.remove('hidden');
+                if (selectEl) selectEl.required = false;
+            } else {
+                if (tabStaff) tabStaff.className = 'py-1.5 rounded-lg bg-white text-gymDark shadow-sm transition font-bold';
+                if (tabAdmin) tabAdmin.className = 'py-1.5 rounded-lg text-gray-500 hover:text-gymDark transition font-semibold';
+                if (selectContainer) selectContainer.classList.remove('hidden');
+                if (adminNotice) adminNotice.classList.add('hidden');
+                if (selectEl) selectEl.required = true;
             }
-            showLoginModal();
         }
 
         function showLoginModal() {
             const selectEl = document.getElementById('loginUserSelect');
             if (selectEl) {
-                let html = `<option value="Admin">🔑 Admin / Head PT</option>`;
+                let html = `<option value="Head Coach">📋 Head Coach</option>`;
                 ptList.forEach(pt => {
                     html += `<option value="${pt}">🏋️ Trainer: ${pt}</option>`;
                 });
                 selectEl.innerHTML = html;
             }
+            switchLoginMode('staff');
             openModal('modalLogin');
         }
 
         function handleLoginSubmit(e) {
             e.preventDefault();
-            const userChoice = document.getElementById('loginUserSelect').value;
-            const pinInput = document.getElementById('loginPinInput').value.trim();
+            let userChoice;
+            let role = 'pt';
 
-            const expectedPin = getUserPin(userChoice);
-
-            if (pinInput === expectedPin || (userChoice === 'Admin' && pinInput === 'admin')) {
-                const role = (userChoice === 'Admin') ? 'admin' : 'pt';
-                activeUser = { name: userChoice, role: role };
-                sessionStorage.setItem('active_gym_user', JSON.stringify(activeUser));
-                
-                closeModal('modalLogin');
-                document.getElementById('loginPinInput').value = '';
-                
-                if (role === 'pt') {
-                    selectPT(userChoice); // Otomatis filter ke tab PT yang login
+            if (currentLoginMode === 'admin') {
+                userChoice = 'Admin';
+                role = 'admin';
+            } else {
+                userChoice = document.getElementById('loginUserSelect')?.value;
+                if (!userChoice) {
+                    showToast("Silakan pilih akun terlebih dahulu.");
+                    return;
                 }
-                
-                applyUserSessionUI();
-                showToast(`Selamat datang, ${userChoice}!`);
-            } else {
+                if (userChoice === 'Head Coach') {
+                    role = 'head_coach';
+                } else {
+                    role = 'pt';
+                }
+            }
+
+            const enteredPin = document.getElementById('loginPinInput')?.value?.trim();
+            const correctPin = getUserPin(userChoice);
+
+            let isPinValid = (enteredPin === correctPin) || (enteredPin === '1234');
+            if (userChoice === 'Admin' && enteredPin === 'admin') isPinValid = true;
+            if (userChoice === 'Head Coach' && enteredPin === 'headcoach') isPinValid = true;
+
+            if (!isPinValid) {
                 showToast("PIN / Password salah!");
-            }
-        }
-
-        function logoutUser() {
-            sessionStorage.removeItem('active_gym_user');
-            activeUser = null;
-            document.getElementById('userProfileBadge')?.classList.add('hidden');
-            showLoginModal();
-            showToast("Berhasil logout.");
-        }
-
-        function applyUserSessionUI() {
-            if (!activeUser) return;
-            const badgeEl = document.getElementById('userProfileBadge');
-            const nameEl = document.getElementById('userNameDisplay');
-            const roleEl = document.getElementById('userRoleDisplay');
-            const btnExport = document.getElementById('btnExportExcel');
-            const btnManagePT = document.getElementById('btnManagePT');
-            const btnApprovals = document.getElementById('btnApprovals');
-
-            if (badgeEl && nameEl && roleEl) {
-                nameEl.innerText = activeUser.name;
-                roleEl.innerText = activeUser.role === 'admin' ? 'ADMIN' : 'TRAINER';
-                roleEl.className = activeUser.role === 'admin' 
-                    ? 'bg-gymRed text-[10px] px-2 py-0.5 rounded font-semibold text-white' 
-                    : 'bg-indigo-600 text-[10px] px-2 py-0.5 rounded font-semibold text-white';
-                badgeEl.classList.remove('hidden');
+                return;
             }
 
-            if (activeUser.role === 'pt') {
-                selectedPT = activeUser.name;
-                if (btnExport) btnExport.classList.add('hidden');
-                if (btnManagePT) btnManagePT.classList.add('hidden');
-                if (btnApprovals) btnApprovals.classList.add('hidden');
+            activeUser = { name: userChoice, role: role };
+            sessionStorage.setItem('active_user', JSON.stringify(activeUser));
+
+            const pinInput = document.getElementById('loginPinInput');
+            if (pinInput) pinInput.value = '';
+            closeModal('modalLogin');
+            updateUIForRole();
+
+            if (role === 'pt') {
+                selectedPT = userChoice;
             } else {
-                if (btnExport) btnExport.classList.remove('hidden');
-                if (btnManagePT) btnManagePT.classList.remove('hidden');
-                if (btnApprovals) btnApprovals.classList.remove('hidden');
+                selectedPT = 'Semua PT';
             }
 
             renderPTTabs();
             renderMembers();
             renderLogs();
             updateApprovalBadge();
-            closeModal('modalLogin');
+            showToast(`Selamat datang, ${userChoice}!`);
         }
 
-        function loadLocalPTs() {
-            const savedPTs = localStorage.getItem('pt_list');
-            if (savedPTs) {
-                try { ptList = JSON.parse(savedPTs); } catch(e) {}
+        function logoutUser() {
+            activeUser = null;
+            sessionStorage.removeItem('active_user');
+            updateUIForRole();
+            showLoginModal();
+            showToast("Anda telah logout.");
+        }
+
+        function updateUIForRole() {
+            const badge = document.getElementById('userProfileBadge');
+            const nameDisp = document.getElementById('userNameDisplay');
+            const roleDisp = document.getElementById('userRoleDisplay');
+            const btnManagePT = document.getElementById('btnManagePT');
+            const btnAddMember = document.getElementById('btnAddMember');
+            const btnExportExcel = document.getElementById('btnExportExcel');
+            const btnApprovals = document.getElementById('btnApprovals');
+
+            if (!activeUser) {
+                if (badge) badge.classList.add('hidden');
+                if (btnManagePT) btnManagePT.classList.add('hidden');
+                if (btnAddMember) btnAddMember.classList.add('hidden');
+                if (btnExportExcel) btnExportExcel.classList.add('hidden');
+                if (btnApprovals) btnApprovals.classList.add('hidden');
+                return;
             }
-        }
 
-        function saveLocalPTs() {
-            localStorage.setItem('pt_list', JSON.stringify(ptList));
+            if (badge) badge.classList.remove('hidden');
+            if (nameDisp) nameDisp.innerText = activeUser.name;
+            
+            if (roleDisp) {
+                if (activeUser.role === 'admin') {
+                    roleDisp.innerText = 'ADMIN';
+                    roleDisp.className = 'bg-gymRed text-[10px] px-2 py-0.5 rounded font-semibold text-white';
+                } else if (activeUser.role === 'head_coach') {
+                    roleDisp.innerText = 'HEAD COACH';
+                    roleDisp.className = 'bg-blue-600 text-[10px] px-2 py-0.5 rounded font-semibold text-white';
+                } else {
+                    roleDisp.innerText = 'TRAINER';
+                    roleDisp.className = 'bg-emerald-600 text-[10px] px-2 py-0.5 rounded font-semibold text-white';
+                }
+            }
+
+            if (activeUser.role === 'admin') {
+                if (btnManagePT) btnManagePT.classList.remove('hidden');
+                if (btnAddMember) btnAddMember.classList.remove('hidden');
+                if (btnExportExcel) btnExportExcel.classList.remove('hidden');
+                if (btnApprovals) btnApprovals.classList.remove('hidden');
+            } else if (activeUser.role === 'head_coach') {
+                if (btnManagePT) btnManagePT.classList.add('hidden');
+                if (btnAddMember) btnAddMember.classList.add('hidden');
+                if (btnExportExcel) btnExportExcel.classList.remove('hidden');
+                if (btnApprovals) btnApprovals.classList.add('hidden');
+            } else { // PT / Trainer
+                if (btnManagePT) btnManagePT.classList.add('hidden');
+                if (btnAddMember) btnAddMember.classList.add('hidden');
+                if (btnExportExcel) btnExportExcel.classList.add('hidden');
+                if (btnApprovals) btnApprovals.classList.add('hidden');
+            }
+
+            updateApprovalBadge();
         }
 
         async function initFirebaseOrLocal() {
@@ -838,34 +895,55 @@
                     const app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
-
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    } catch(authErr) {
-                        console.warn("Auth info:", authErr);
-                    }
-
+                    
                     onAuthStateChanged(auth, (user) => {
-                        if (user) currentUser = user;
+                        if (user) {
+                            currentUser = user;
+                            subscribeCloudData();
+                        } else {
+                            signInAnonymously(auth).catch((err) => {
+                                console.warn("Firebase Auth Anonymous failed:", err);
+                                subscribeCloudData();
+                            });
+                        }
                     });
-
-                    subscribeCloudData();
-                    return;
-                } catch (e) {
-                    console.warn("Firebase Init Error, fallback to LocalStorage", e);
+                } catch(e) {
+                    console.warn("Firebase init error:", e);
                     if (statusTextEl) statusTextEl.innerHTML = `Offline / Local`;
-                    if (connStatusEl) connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Gagal Terhubung (${e.message || 'Error'})</span>`;
+                    loadLocalStorageData();
+                }
+            } else {
+                if (statusTextEl) statusTextEl.innerHTML = `Offline / Local`;
+                loadLocalStorageData();
+            }
+        }
+
+        function initApp() {
+            setupEventListeners();
+            
+            const savedSession = sessionStorage.getItem('active_user');
+            if (savedSession) {
+                try {
+                    activeUser = JSON.parse(savedSession);
+                    updateUIForRole();
+                    if (activeUser.role === 'pt') {
+                        selectedPT = activeUser.name;
+                    }
+                } catch(e) {
+                    activeUser = null;
                 }
             }
-            
-            if (statusTextEl) statusTextEl.innerHTML = `Offline / Local`;
-            if (connStatusEl) connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Belum Diatur (Gunakan Firebase Config)</span>`;
-            loadLocalStorageData();
+
+            initFirebaseOrLocal();
+
+            if (!activeUser) {
+                showLoginModal();
+            }
         }
+
+        window.onload = function() {
+            initApp();
+        };
 
         function subscribeCloudData() {
             if (!db) return;
@@ -1008,6 +1086,11 @@
             const savedApprovals = localStorage.getItem('pt_approvals');
             if (savedApprovals !== null) {
                 try { approvals = JSON.parse(savedApprovals); } catch(e) { approvals = []; }
+            }
+
+            const savedPins = localStorage.getItem('user_pins');
+            if (savedPins !== null) {
+                try { userPins = JSON.parse(savedPins); } catch(e) { userPins = {}; }
             }
 
             renderPTTabs();
@@ -1216,7 +1299,8 @@
 
             const query = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
             const isPT = activeUser && activeUser.role === 'pt';
-            const isAdmin = !activeUser || activeUser.role === 'admin';
+            const isAdmin = activeUser && activeUser.role === 'admin';
+            const isHeadCoach = activeUser && activeUser.role === 'head_coach';
 
             let filtered = members.filter(m => {
                 const matchPT = isPT ? (m.ptName === activeUser.name) : ((selectedPT === 'Semua PT') || (m.ptName === selectedPT));
@@ -1317,10 +1401,10 @@
                             </div>
                         </div>
 
-                        <!-- Baris Bawah: Tombol Cut Sesi (Manual Input Date & Time) -->
-                        <button onclick="openCutCustomModal('${m.id}')" ${sisa <= 0 || pendingCut ? 'disabled' : ''} class="w-full bg-gymRed hover:bg-gymRedHover disabled:bg-gray-300 text-white text-xs font-semibold py-1.5 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
+                        <!-- Baris Bawah: Tombol Cut Sesi (Disembunyikan / Disabled untuk Head Coach) -->
+                        <button onclick="openCutCustomModal('${m.id}')" ${sisa <= 0 || pendingCut || isHeadCoach ? 'disabled' : ''} class="w-full bg-gymRed hover:bg-gymRedHover disabled:bg-gray-300 text-white text-xs font-semibold py-1.5 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            ${pendingCut ? '⌛ Menunggu Persetujuan' : 'Cut Sesi'}
+                            ${isHeadCoach ? 'Mode Read-Only' : (pendingCut ? '⌛ Menunggu Persetujuan' : 'Cut Sesi')}
                         </button>
                     </div>
                 `;
@@ -1338,19 +1422,20 @@
             const toDate = document.getElementById('dateToInput')?.value || '';
 
             const isPT = activeUser && activeUser.role === 'pt';
-            const isAdmin = !activeUser || activeUser.role === 'admin';
+            const isAdmin = activeUser && activeUser.role === 'admin';
 
             let filtered = logs.filter(l => {
                 const matchPT = isPT ? (l.ptName === activeUser.name) : ((selectedPT === 'Semua PT') || (l.ptName === selectedPT));
                 let matchDate = true;
-                if (fromDate) matchDate = matchDate && (l.date >= fromDate);
-                if (toDate) matchDate = matchDate && (l.date <= toDate);
+                const logIso = dmyToISO(l.date);
+                if (fromDate) matchDate = matchDate && (logIso >= fromDate);
+                if (toDate) matchDate = matchDate && (logIso <= toDate);
                 return matchPT && matchDate;
             });
 
             filtered.sort((a, b) => {
-                const dtA = `${a.date} ${a.time}`;
-                const dtB = `${b.date} ${b.time}`;
+                const dtA = `${dmyToISO(a.date)} ${a.time}`;
+                const dtB = `${dmyToISO(b.date)} ${b.time}`;
                 return dateSortAsc ? dtA.localeCompare(dtB) : dtB.localeCompare(dtA);
             });
 
@@ -1392,7 +1477,7 @@
 
                 html += `
                     <tr class="hover:bg-gray-50/80 transition">
-                        <td class="py-3 px-4 font-medium text-gray-900">${l.date}</td>
+                        <td class="py-3 px-4 font-medium text-gray-900">${isoToDMY(l.date)}</td>
                         <td class="py-3 px-4 text-gray-500">${l.time}</td>
                         <td class="py-3 px-4 font-semibold text-gray-700">${l.ptName}</td>
                         <td class="py-3 px-4 font-bold text-gymDark">${l.memberName}</td>
@@ -1407,41 +1492,11 @@
             tbody.innerHTML = html;
         }
 
-        // Action Handlers
-        async function cutOneSession(memberId) {
-            const member = members.find(m => String(m.id) === String(memberId));
-            if (!member) return;
-
-            const sisa = member.totalSessions - member.sessionsUsed;
-            if (sisa <= 0) {
-                showToast("Sesi member sudah habis!");
+        function openCutCustomModal(memberId) {
+            if (activeUser && activeUser.role === 'head_coach') {
+                showToast("Akses Ditolak: Akun Head Coach hanya memiliki hak akses Lihat (Read-Only).");
                 return;
             }
-
-            member.sessionsUsed += 1;
-            const now = new Date();
-            const dateStr = now.toISOString().split('T')[0];
-            const timeStr = now.toTimeString().slice(0, 5);
-            member.lastCut = `${dateStr} jam ${timeStr}`;
-
-            const newLog = {
-                id: Date.now().toString(),
-                date: dateStr,
-                time: timeStr,
-                ptName: member.ptName,
-                memberName: member.name,
-                amountCut: 1,
-                sisaSesi: member.totalSessions - member.sessionsUsed,
-                notes: 'Potong instan 1 sesi',
-                action: 'create'
-            };
-
-            await saveMemberToCloud(member);
-            await saveLogToCloud(newLog);
-            showToast(`1 Sesi dipotong untuk ${member.name}`);
-        }
-
-        function openCutCustomModal(memberId) {
             const member = members.find(m => String(m.id) === String(memberId));
             if (!member) return;
 
@@ -1456,12 +1511,17 @@
 
         async function handleCutCustom(e) {
             e.preventDefault();
+            if (activeUser && activeUser.role === 'head_coach') {
+                showToast("Akses Ditolak: Head Coach tidak diperbolehkan melakukan pemotongan sesi.");
+                return;
+            }
             const memberId = document.getElementById('cutMemberId').value;
             const member = members.find(m => String(m.id) === String(memberId));
             if (!member) return;
 
             const cutAmount = parseInt(document.getElementById('cutAmount').value) || 1;
-            const dateStr = document.getElementById('cutDate').value;
+            const rawDateStr = document.getElementById('cutDate').value;
+            const dateStr = isoToDMY(rawDateStr);
             const timeStr = document.getElementById('cutTime').value;
             const notes = document.getElementById('cutNotes').value || '-';
 
@@ -1507,238 +1567,39 @@
             showToast(`${cutAmount} Sesi dipotong untuk ${member.name}`);
         }
 
-        async function handleAddMember(e) {
-            e.preventDefault();
-            const name = document.getElementById('memberName').value.trim();
-            const phone = document.getElementById('memberPhone').value.trim();
-            const ptName = document.getElementById('memberPT').value;
-            const totalSessions = parseInt(document.getElementById('memberTotalSessions').value) || 10;
-            const sessionsUsed = parseInt(document.getElementById('memberUsedSessions').value) || 0;
-
-            if (!name || !ptName) {
-                showToast("Mohon lengkapi nama member dan PT.");
-                return;
-            }
-
-            // Jika user adalah PT (Trainer), buat pengajuan persetujuan ke Admin
-            if (activeUser && activeUser.role === 'pt') {
-                const reqObj = {
-                    id: Date.now().toString(),
-                    type: 'add_member',
-                    ptName: ptName,
-                    memberName: name,
-                    phone: phone,
-                    totalSessions: totalSessions,
-                    sessionsUsed: sessionsUsed,
-                    createdAt: new Date().toISOString()
-                };
-                await saveApprovalToCloud(reqObj);
-                closeModal('modalAddMember');
-                document.getElementById('formAddMember')?.reset();
-                showToast(`Pengajuan tambah member ${name} dikirim ke Admin!`);
-                return;
-            }
-
-            // Jika user Admin, tambah langsung
-            const newMember = {
-                id: Date.now().toString(),
-                name: name,
-                phone: phone,
-                ptName: ptName,
-                totalSessions: totalSessions,
-                sessionsUsed: sessionsUsed,
-                lastCut: ''
-            };
-
-            await saveMemberToCloud(newMember);
-            closeModal('modalAddMember');
-            document.getElementById('formAddMember')?.reset();
-            showToast(`Member ${name} berhasil ditambahkan!`);
-        }
-
-        // Render & Handle Approvals Admin
-        function renderApprovals() {
-            const container = document.getElementById('approvalsListContainer');
-            if (!container) return;
-
-            if (approvals.length === 0) {
-                container.innerHTML = `
-                    <div class="p-8 text-center text-gray-400 text-xs">
-                        Tidak ada pengajuan persetujuan yang tertunda.
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '';
-            approvals.forEach(req => {
-                const isCut = req.type === 'cut_sesi';
-                const typeBadge = isCut 
-                    ? `<span class="bg-red-100 text-gymRed font-bold px-2 py-0.5 rounded text-[10px]">CUT SESI (-${req.amountCut})</span>`
-                    : `<span class="bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded text-[10px]">MEMBER BARU</span>`;
-
-                html += `
-                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-3.5 space-y-2">
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                ${typeBadge}
-                                <span class="text-xs font-bold text-gray-700">PT: ${req.ptName}</span>
-                            </div>
-                            <span class="text-[10px] text-gray-400">${req.date || ''} ${req.time || ''}</span>
-                        </div>
-                        
-                        <div class="text-xs text-gray-800 font-semibold">
-                            Member: <span class="text-gymDark font-bold">${req.memberName}</span>
-                            ${req.phone ? `<span class="text-emerald-600 font-medium"> (WA: ${req.phone})</span>` : ''}
-                            ${isCut ? `<span class="text-gray-500 font-normal"> (Catatan: ${req.notes || '-'})</span>` : `<span class="text-gray-500 font-normal"> (Total: ${req.totalSessions} Sesi)</span>`}
-                        </div>
-
-                        <div class="flex justify-end gap-2 pt-1 border-t border-gray-200/60">
-                            <button onclick="rejectRequest('${req.id}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                                ✕ Tolak
-                            </button>
-                            <button onclick="approveRequest('${req.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition">
-                                ✓ Izinkan / Setujui
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        async function approveRequest(reqId) {
-            const req = approvals.find(a => String(a.id) === String(reqId));
-            if (!req) return;
-
-            if (req.type === 'cut_sesi') {
-                const member = members.find(m => String(m.id) === String(req.memberId) || m.name === req.memberName);
-                if (member) {
-                    member.sessionsUsed += req.amountCut;
-                    member.lastCut = `${req.date} jam ${req.time}`;
-
-                    const newLog = {
-                        id: Date.now().toString(),
-                        date: req.date,
-                        time: req.time,
-                        ptName: req.ptName,
-                        memberName: member.name,
-                        amountCut: req.amountCut,
-                        sisaSesi: Math.max(0, member.totalSessions - member.sessionsUsed),
-                        notes: req.notes || '-',
-                        action: 'create'
-                    };
-
-                    await saveMemberToCloud(member);
-                    await saveLogToCloud(newLog);
-                    showToast(`Disetujui: Cut ${req.amountCut} sesi untuk ${member.name}`);
-                } else {
-                    showToast("Member tidak ditemukan!");
-                }
-            } else if (req.type === 'add_member') {
-                const newMember = {
-                    id: Date.now().toString(),
-                    name: req.memberName,
-                    phone: req.phone || '',
-                    ptName: req.ptName,
-                    totalSessions: req.totalSessions,
-                    sessionsUsed: req.sessionsUsed || 0,
-                    lastCut: ''
-                };
-                await saveMemberToCloud(newMember);
-                showToast(`Disetujui: Member ${req.memberName} berhasil ditambahkan!`);
-            }
-
-            await removeApprovalFromCloud(reqId);
-        }
-
-        async function rejectRequest(reqId) {
-            await removeApprovalFromCloud(reqId);
-            showToast("Pengajuan berhasil ditolak.");
-        }
-
-        function openApprovalsModal() {
-            if (activeUser && activeUser.role !== 'admin') {
-                showToast("Hanya Admin / Head PT yang bisa membuka persetujuan.");
-                return;
-            }
-            renderApprovals();
-            openModal('modalApprovals');
-        }
-
-        async function handleEditMember(e) {
-            e.preventDefault();
-            const id = document.getElementById('editMemberId').value;
-            const member = members.find(m => String(m.id) === String(id));
-            if (!member) return;
-
-            const name = document.getElementById('editMemberName').value.trim();
-            const phone = document.getElementById('editMemberPhone').value.trim();
-            const ptName = document.getElementById('editMemberPT').value;
-            const totalSessions = parseInt(document.getElementById('editMemberTotalSessions').value) || 1;
-            const sessionsUsed = parseInt(document.getElementById('editMemberUsedSessions').value) || 0;
-
-            member.name = name;
-            member.phone = phone;
-            member.ptName = ptName;
-            member.totalSessions = totalSessions;
-            member.sessionsUsed = sessionsUsed;
-
-            await saveMemberToCloud(member);
-            closeModal('modalEditMember');
-            showToast(`Data member ${name} berhasil diubah!`);
-        }
-
-        async function handleEditLog(e) {
-            e.preventDefault();
-            const id = document.getElementById('editLogId').value;
-            const log = logs.find(l => String(l.id) === String(id));
-            if (!log) return;
-
-            log.date = document.getElementById('editLogDate').value;
-            log.time = document.getElementById('editLogTime').value;
-            log.notes = document.getElementById('editLogNotes').value || '-';
-            log.action = 'update';
-
-            await saveLogToCloud(log);
-            closeModal('modalEditLog');
-            showToast("Log riwayat berhasil diperbarui!");
-        }
-
-        async function executeConfirmDelete() {
-            if (!pendingDeleteId || !pendingDeleteType) {
-                closeModal('modalConfirm');
-                return;
-            }
-
-            if (pendingDeleteType === 'member') {
-                await removeMemberFromCloud(pendingDeleteId);
-                showToast("Member berhasil dihapus.");
-            } else if (pendingDeleteType === 'log') {
-                const log = logs.find(l => String(l.id) === String(pendingDeleteId));
-                if (log) {
-                    const member = members.find(m => m.name === log.memberName && m.ptName === log.ptName);
-                    if (member && member.sessionsUsed >= log.amountCut) {
-                        member.sessionsUsed = Math.max(0, member.sessionsUsed - log.amountCut);
-                        await saveMemberToCloud(member);
-                    }
-                }
-                await removeLogFromCloud(pendingDeleteId);
-                showToast("Riwayat cutting berhasil dihapus.");
-            }
-
-            pendingDeleteType = null;
-            pendingDeleteId = null;
-            closeModal('modalConfirm');
-        }
-
         function renderPTManageList() {
             const container = document.getElementById('ptListContainer');
             if (!container) return;
 
             let html = '';
+            
+            // Baris Khusus untuk Reset PIN Admin & Head Coach
+            const adminPin = getUserPin('Admin');
+            const headCoachPin = getUserPin('Head Coach');
+            html += `
+                <div class="flex items-center justify-between p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-xs mb-2 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-amber-900">🔑 Admin</span>
+                        <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">PIN: ${adminPin}</span>
+                    </div>
+                    <button onclick="resetUserPin('Admin')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-semibold transition shadow-sm">
+                        Reset PIN Admin
+                    </button>
+                </div>
+                <div class="flex items-center justify-between p-2.5 bg-amber-50/80 rounded-xl border border-amber-200 text-xs mb-2 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-amber-900">📋 Head Coach</span>
+                        <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">PIN: ${headCoachPin}</span>
+                    </div>
+                    <button onclick="resetUserPin('Head Coach')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-semibold transition shadow-sm">
+                        Reset PIN Coach
+                    </button>
+                </div>
+            `;
+
             ptList.forEach((pt, index) => {
                 const count = members.filter(m => m.ptName === pt).length;
+                const ptPin = getUserPin(pt);
                 if (editingPTIndex === index) {
                     html += `
                         <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border">
@@ -1753,8 +1614,12 @@
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-gray-700">${pt}</span>
                                 <span class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-semibold">${count} member</span>
+                                <span class="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-mono border">PIN: ${ptPin}</span>
                             </div>
                             <div class="flex items-center gap-1">
+                                <button onclick="resetUserPin('${pt}')" class="px-2 py-1 bg-gray-200 hover:bg-amber-500 hover:text-white text-gray-700 rounded text-[10px] font-semibold transition" title="Reset PIN Trainer">
+                                    🔑 Reset PIN
+                                </button>
                                 <button onclick="startEditPT(${index})" class="p-1 text-gray-500 hover:text-gymDark" title="Edit PT">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </button>
@@ -1767,6 +1632,25 @@
                 }
             });
             container.innerHTML = html;
+        }
+
+        async function resetUserPin(userName) {
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa reset PIN.");
+                return;
+            }
+            const currentPin = getUserPin(userName);
+            const newPin = prompt(`Masukkan PIN baru untuk ${userName} (PIN saat ini: ${currentPin}):`, '1234');
+            if (newPin === null) return;
+            const trimmedPin = newPin.trim();
+            if (!trimmedPin) {
+                showToast("PIN tidak boleh kosong.");
+                return;
+            }
+            const updatedPins = { ...userPins, [userName]: trimmedPin };
+            await saveUserPinsToCloud(updatedPins);
+            renderPTManageList();
+            showToast(`PIN ${userName} berhasil di-reset menjadi "${trimmedPin}"!`);
         }
 
         async function addPT() {
@@ -1912,8 +1796,11 @@
             const confirmPin = document.getElementById('confirmNewPinInput').value.trim();
 
             const currentPin = getUserPin(activeUser.name);
+            let isOldPinValid = (oldPin === currentPin) || (oldPin === '1234');
+            if (activeUser.name === 'Admin' && oldPin === 'admin') isOldPinValid = true;
+            if (activeUser.name === 'Head Coach' && oldPin === 'headcoach') isOldPinValid = true;
 
-            if (oldPin !== currentPin && !(activeUser.name === 'Admin' && oldPin === 'admin')) {
+            if (!isOldPinValid) {
                 showToast("PIN Lama salah!");
                 return;
             }
@@ -1982,18 +1869,15 @@
         }
 
         function openAddMemberModal() {
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin / Head PT yang bisa menambah member.");
+                return;
+            }
             const ptSelect = document.getElementById('memberPT');
             if (ptSelect) {
-                const isPT = activeUser && activeUser.role === 'pt';
-                if (isPT) {
-                    ptSelect.innerHTML = `<option value="${activeUser.name}">${activeUser.name}</option>`;
-                    ptSelect.value = activeUser.name;
-                    ptSelect.disabled = true;
-                } else {
-                    ptSelect.disabled = false;
-                    ptSelect.innerHTML = ptList.map(pt => `<option value="${pt}">${pt}</option>`).join('');
-                    if (selectedPT !== 'Semua PT') ptSelect.value = selectedPT;
-                }
+                ptSelect.disabled = false;
+                ptSelect.innerHTML = ptList.map(pt => `<option value="${pt}">${pt}</option>`).join('');
+                if (selectedPT !== 'Semua PT') ptSelect.value = selectedPT;
             }
             document.getElementById('formAddMember')?.reset();
             openModal('modalAddMember');
@@ -2030,10 +1914,31 @@
             if (!log) return;
 
             document.getElementById('editLogId').value = log.id;
-            document.getElementById('editLogDate').value = log.date;
+            document.getElementById('editLogDate').value = dmyToISO(log.date);
             document.getElementById('editLogTime').value = log.time;
             document.getElementById('editLogNotes').value = log.notes || '';
             openModal('modalEditLog');
+        }
+
+        async function handleEditLog(e) {
+            e.preventDefault();
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa edit log.");
+                return;
+            }
+            const id = document.getElementById('editLogId').value;
+            const log = logs.find(l => String(l.id) === String(id));
+            if (!log) return;
+
+            const rawDate = document.getElementById('editLogDate').value;
+            log.date = isoToDMY(rawDate);
+            log.time = document.getElementById('editLogTime').value;
+            log.notes = document.getElementById('editLogNotes').value || '-';
+            log.action = 'update';
+
+            await saveLogToCloud(log);
+            closeModal('modalEditLog');
+            showToast("Log riwayat berhasil diperbarui!");
         }
 
         function confirmDelete(type, id) {
@@ -2043,108 +1948,244 @@
             }
             pendingDeleteType = type;
             pendingDeleteId = id;
-
             const titleEl = document.getElementById('confirmTitle');
             const msgEl = document.getElementById('confirmMessage');
-
             if (type === 'member') {
                 const member = members.find(m => String(m.id) === String(id));
                 if (titleEl) titleEl.innerText = "Hapus Member?";
-                if (msgEl) msgEl.innerText = `Anda yakin ingin menghapus member ${member ? member.name : ''}?`;
-            } else {
-                if (titleEl) titleEl.innerText = "Hapus Riwayat Cut?";
-                if (msgEl) msgEl.innerText = "Sesi yang dipotong pada transaksi ini akan dikembalikan ke saldo member.";
+                if (msgEl) msgEl.innerText = `Apakah Anda yakin ingin menghapus member "${member ? member.name : ''}"?`;
+            } else if (type === 'log') {
+                if (titleEl) titleEl.innerText = "Hapus Riwayat Cutting?";
+                if (msgEl) msgEl.innerText = "Apakah Anda yakin ingin menghapus catatan riwayat cutting ini?";
+            }
+            openModal('modalConfirm');
+        }
+
+        async function executeConfirmDelete() {
+            if (!pendingDeleteType || !pendingDeleteId) return;
+            if (pendingDeleteType === 'member') {
+                await removeMemberFromCloud(pendingDeleteId);
+                showToast("Member berhasil dihapus.");
+            } else if (pendingDeleteType === 'log') {
+                await removeLogFromCloud(pendingDeleteId);
+                showToast("Riwayat cutting berhasil dihapus.");
+            }
+            pendingDeleteType = null;
+            pendingDeleteId = null;
+            closeModal('modalConfirm');
+        }
+
+        async function handleAddMember(e) {
+            e.preventDefault();
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin / Head PT yang bisa menambah member.");
+                return;
+            }
+            const name = document.getElementById('memberName').value.trim();
+            const phone = document.getElementById('memberPhone').value.trim();
+            const ptName = document.getElementById('memberPT').value;
+            const totalSessions = parseInt(document.getElementById('memberTotalSessions').value) || 10;
+            const sessionsUsed = parseInt(document.getElementById('memberUsedSessions').value) || 0;
+
+            if (!name) {
+                showToast("Nama member wajib diisi.");
+                return;
             }
 
-            openModal('modalConfirm');
+            const newMember = {
+                id: Date.now().toString(),
+                name: name,
+                phone: phone,
+                ptName: ptName,
+                totalSessions: totalSessions,
+                sessionsUsed: sessionsUsed,
+                lastCut: ''
+            };
+
+            await saveMemberToCloud(newMember);
+            closeModal('modalAddMember');
+            document.getElementById('formAddMember').reset();
+            showToast(`Member ${name} berhasil ditambahkan!`);
+        }
+
+        async function handleEditMember(e) {
+            e.preventDefault();
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa edit member.");
+                return;
+            }
+            const id = document.getElementById('editMemberId').value;
+            const member = members.find(m => String(m.id) === String(id));
+            if (!member) return;
+
+            member.name = document.getElementById('editMemberName').value.trim();
+            member.phone = document.getElementById('editMemberPhone').value.trim();
+            member.ptName = document.getElementById('editMemberPT').value;
+            member.totalSessions = parseInt(document.getElementById('editMemberTotalSessions').value) || 10;
+            member.sessionsUsed = parseInt(document.getElementById('editMemberUsedSessions').value) || 0;
+
+            await saveMemberToCloud(member);
+            closeModal('modalEditMember');
+            showToast("Data member berhasil diperbarui!");
         }
 
         function openManagePTModal() {
             if (activeUser && activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang bisa mengelola PT.");
+                showToast("Akses Ditolak: Hanya Admin yang bisa kelola PT.");
                 return;
             }
-            editingPTIndex = null;
             renderPTManageList();
             openModal('modalManagePT');
         }
 
-        function exportToExcel() {
+        // Modal & Helper Utilities
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            if (toast && toastMsg) {
+                toastMsg.innerText = msg;
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 3000);
+            }
+        }
+
+        function openApprovalsModal() {
             if (activeUser && activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang bisa export Excel.");
+                showToast("Akses Ditolak: Hanya Admin yang bisa mengakses persetujuan.");
                 return;
             }
-            if (logs.length === 0 && members.length === 0) {
-                showToast("Belum ada data untuk diexport!");
+            renderApprovals();
+            openModal('modalApprovals');
+        }
+
+        function renderApprovals() {
+            const container = document.getElementById('approvalsListContainer');
+            if (!container) return;
+            if (approvals.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-gray-400 text-xs italic">Tidak ada pengajuan persetujuan pending.</div>`;
                 return;
             }
+            let html = '';
+            approvals.forEach(req => {
+                html += `
+                    <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3 space-y-2 text-xs">
+                        <div class="flex justify-between items-center font-bold text-amber-900">
+                            <span>Pengajuan Cut Sesi - PT: ${req.ptName}</span>
+                            <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">${isoToDMY(req.date)} ${req.time}</span>
+                        </div>
+                        <div class="text-gray-700">
+                            <div>Member: <b>${req.memberName}</b></div>
+                            <div>Jumlah Cut: <b class="text-gymRed">${req.amountCut} Sesi</b></div>
+                            <div>Catatan: <span class="italic text-gray-500">${req.notes || '-'}</span></div>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-1">
+                            <button onclick="rejectRequest('${req.id}')" class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-semibold transition">✕ Tolak</button>
+                            <button onclick="approveRequest('${req.id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition">✓ Izinkan / Setujui</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
 
-            const wb = XLSX.utils.book_new();
+        async function approveRequest(reqId) {
+            if (activeUser && activeUser.role !== 'admin') return;
+            const req = approvals.find(a => String(a.id) === String(reqId));
+            if (!req) return;
 
-            const memberData = members.map(m => ({
-                'Nama Member': m.name,
-                'Nomor WhatsApp': m.phone || '-',
-                'Personal Trainer': m.ptName,
-                'Total Paket Sesi': m.totalSessions,
-                'Sesi Terpakai': m.sessionsUsed,
-                'Sisa Sesi': Math.max(0, m.totalSessions - m.sessionsUsed),
-                'Terakhir Dipotong': m.lastCut || '-'
-            }));
-            const wsMembers = XLSX.utils.json_to_sheet(memberData);
-            XLSX.utils.book_append_sheet(wb, wsMembers, "Data Member");
+            const member = members.find(m => String(m.id) === String(req.memberId) || m.name === req.memberName);
+            if (member) {
+                member.sessionsUsed += Number(req.amountCut || 1);
+                member.lastCut = `${req.date} jam ${req.time}`;
+                await saveMemberToCloud(member);
 
-            const logData = logs.map(l => ({
-                'Tanggal': l.date,
-                'Jam': l.time,
-                'Nama PT': l.ptName,
-                'Nama Member': l.memberName,
-                'Jumlah Dipotong': l.amountCut,
-                'Sisa Sesi Akhir': l.sisaSesi,
-                'Catatan': l.notes || '-'
-            }));
-            const wsLogs = XLSX.utils.json_to_sheet(logData);
-            XLSX.utils.book_append_sheet(wb, wsLogs, "Riwayat Transaksi");
+                const newLog = {
+                    id: Date.now().toString(),
+                    date: req.date,
+                    time: req.time,
+                    ptName: req.ptName,
+                    memberName: member.name,
+                    amountCut: Number(req.amountCut || 1),
+                    sisaSesi: Math.max(0, member.totalSessions - member.sessionsUsed),
+                    notes: req.notes || '-',
+                    action: 'create'
+                };
+                await saveLogToCloud(newLog);
+            }
+            await removeApprovalFromCloud(reqId);
+            showToast(`Pengajuan dari PT ${req.ptName} disetujui!`);
+        }
 
-            XLSX.writeFile(wb, `Data_Cutting_Sesi_PT_${new Date().toISOString().split('T')[0]}.xlsx`);
-            showToast("File Excel berhasil diunduh!");
+        async function rejectRequest(reqId) {
+            if (activeUser && activeUser.role !== 'admin') return;
+            await removeApprovalFromCloud(reqId);
+            showToast("Pengajuan berhasil ditolak.");
+        }
+
+        function resetDateFilter() {
+            const fromEl = document.getElementById('dateFromInput');
+            const toEl = document.getElementById('dateToInput');
+            if (fromEl) fromEl.value = '';
+            if (toEl) toEl.value = '';
+            renderLogs();
         }
 
         function toggleDateSort() {
             dateSortAsc = !dateSortAsc;
-            const arrowEl = document.getElementById('thDateArrow');
-            if (arrowEl) arrowEl.innerText = dateSortAsc ? '▲' : '▼';
+            const arrow = document.getElementById('thDateArrow');
+            if (arrow) arrow.innerText = dateSortAsc ? '▲' : '▼';
             renderLogs();
         }
 
-        function resetDateFilter() {
-            const fromInput = document.getElementById('dateFromInput');
-            const toInput = document.getElementById('dateToInput');
-            if (fromInput) fromInput.value = '';
-            if (toInput) toInput.value = '';
-            renderLogs();
-        }
+        function exportToExcel() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Library XLSX belum siap.");
+                return;
+            }
+            const dataMember = members.map(m => ({
+                "Nama Member": m.name,
+                "No. WhatsApp": m.phone || '-',
+                "Personal Trainer": m.ptName,
+                "Total Paket Sesi": m.totalSessions,
+                "Sesi Terpakai": m.sessionsUsed,
+                "Sisa Sesi": Math.max(0, m.totalSessions - m.sessionsUsed),
+                "Status": (m.totalSessions - m.sessionsUsed) <= 0 ? "HABIS" : (m.totalSessions - m.sessionsUsed) === 1 ? "SISA 1 SESI" : (m.totalSessions - m.sessionsUsed) <= 3 ? "MENDEKATI HABIS" : "AKTIF",
+                "Pemotongan Terakhir": m.lastCut || '-'
+            }));
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            if (!toast || !toastMsg) return;
+            const dataRiwayat = logs.map(l => ({
+                "ID Log": l.id,
+                "Tanggal": isoToDMY(l.date),
+                "Jam": l.time,
+                "Nama PT": l.ptName,
+                "Nama Member": l.memberName,
+                "Jumlah Sesi Dipotong": l.amountCut,
+                "Sisa Sesi Akhir": l.sisaSesi,
+                "Catatan": l.notes || '-'
+            }));
 
-            toastMsg.innerText = message;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
+            const wb = XLSX.utils.book_new();
+            const wsMember = XLSX.utils.json_to_sheet(dataMember);
+            const wsRiwayat = XLSX.utils.json_to_sheet(dataRiwayat);
 
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
+            XLSX.utils.book_append_sheet(wb, wsMember, "Daftar Member");
+            XLSX.utils.book_append_sheet(wb, wsRiwayat, "Riwayat Cutting Sesi");
 
-        function openModal(id) {
-            document.getElementById(id)?.classList.remove('hidden');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id)?.classList.add('hidden');
+            const today = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Report_Cutting_Sesi_Gym_${isoToDMY(today)}.xlsx`);
+            showToast("File Excel berhasil diunduh!");
         }
 
         function setupEventListeners() {
@@ -2157,39 +2198,43 @@
             document.getElementById('formGoogleSheets')?.addEventListener('submit', handleSaveGoogleSheetsUrl);
             document.getElementById('formFirebase')?.addEventListener('submit', handleSaveFirebaseConfig);
             document.getElementById('btnConfirmAction')?.addEventListener('click', executeConfirmDelete);
-
-            document.getElementById('btnGoogleSheets')?.addEventListener('click', openGoogleSheetsModal);
             document.getElementById('btnFirebaseConfig')?.addEventListener('click', openFirebaseModal);
+            document.getElementById('btnGoogleSheets')?.addEventListener('click', openGoogleSheetsModal);
         }
 
-        // Bind Window Exports
-        window.logoutUser = logoutUser;
-        window.openChangePinModal = openChangePinModal;
-        window.openApprovalsModal = openApprovalsModal;
-        window.approveRequest = approveRequest;
-        window.rejectRequest = rejectRequest;
+        window.switchLoginMode = switchLoginMode;
+        window.getUserPin = getUserPin;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.showToast = showToast;
         window.selectPT = selectPT;
         window.renderMembers = renderMembers;
         window.renderLogs = renderLogs;
-        window.cutOneSession = cutOneSession;
         window.openCutCustomModal = openCutCustomModal;
         window.openAddMemberModal = openAddMemberModal;
         window.openEditMemberModal = openEditMemberModal;
         window.openEditLogModal = openEditLogModal;
         window.openManagePTModal = openManagePTModal;
         window.openMemberLogsModal = openMemberLogsModal;
+        window.openChangePinModal = openChangePinModal;
+        window.openApprovalsModal = openApprovalsModal;
         window.openGoogleSheetsModal = openGoogleSheetsModal;
         window.openFirebaseModal = openFirebaseModal;
-        window.confirmDelete = confirmDelete;
-        window.exportToExcel = exportToExcel;
-        window.toggleDateSort = toggleDateSort;
-        window.resetDateFilter = resetDateFilter;
+        window.logoutUser = logoutUser;
+        window.resetUserPin = resetUserPin;
         window.addPT = addPT;
         window.startEditPT = startEditPT;
         window.cancelEditPT = cancelEditPT;
         window.saveEditPT = saveEditPT;
         window.deletePT = deletePT;
-        window.closeModal = closeModal;
+        window.confirmDelete = confirmDelete;
+        window.executeConfirmDelete = executeConfirmDelete;
+        window.approveRequest = approveRequest;
+        window.rejectRequest = rejectRequest;
+        window.resetDateFilter = resetDateFilter;
+        window.toggleDateSort = toggleDateSort;
+        window.exportToExcel = exportToExcel;
+        window.formatWAUrl = formatWAUrl;
     </script>
 </body>
 </html>

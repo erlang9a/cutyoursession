@@ -156,18 +156,29 @@
                     </h2>
                     <p class="text-xs text-gray-500">Member diurutkan otomatis A-Z. Klik "Cut Sesi" untuk memasukkan tanggal & jam pemotongan sesi.</p>
                 </div>
-                <!-- Search Box -->
-                <div class="relative w-full sm:w-64">
-                    <input type="text" id="searchInput" oninput="renderMembers()" placeholder="Cari nama member..." class="w-full bg-white border border-gray-300 text-xs rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gymRed focus:border-transparent shadow-sm">
-                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
+                <!-- Search Box & Switcher Mode Tampilan -->
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="relative flex-1 sm:w-64">
+                        <input type="text" id="searchInput" oninput="renderMembers()" placeholder="Cari nama member..." class="w-full bg-white border border-gray-300 text-xs rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gymRed focus:border-transparent shadow-sm">
+                        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <!-- Mode Tampilan Switcher (Grid & Row) -->
+                    <div class="bg-white border border-gray-200 rounded-xl p-1 flex items-center gap-1 shadow-sm flex-shrink-0">
+                        <button id="btnViewGrid" onclick="setMemberViewMode('grid')" class="p-1.5 rounded-lg text-gray-500 hover:text-gymRed transition" title="Tampilan Grid (Card)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        </button>
+                        <button id="btnViewRow" onclick="setMemberViewMode('row')" class="p-1.5 rounded-lg text-gray-500 hover:text-gymRed transition" title="Tampilan Row (Baris / Tabel Ringkas)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- List Member Container -->
             <div id="memberListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                <!-- Member Rows akan di-render di sini -->
+                <!-- Member Rows / Cards akan di-render di sini -->
             </div>
         </div>
 
@@ -231,7 +242,7 @@
     <!-- ==================== MODALS ==================== -->
 
     <!-- Modal Login Multi-User (Baru) -->
-    <div id="modalLogin" class="fixed inset-0 bg-gymDark/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div id="modalLogin" class="fixed inset-0 bg-gymDark/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-5 border border-gray-100">
             <div class="text-center space-y-2">
                 <div class="mx-auto w-12 h-12 bg-gymRed text-white rounded-2xl shadow-lg flex items-center justify-center">
@@ -733,15 +744,14 @@
         let selectedPT = 'Semua PT';
         let members = [];
         let logs = [];
-        let approvals = []; // State untuk daftar pengajuan persetujuan
-        let bookings = [];  // State untuk daftar booking sesi (Baru)
+        let approvals = [];
+        let bookings = [];
         let userPins = {};
         let editingPTIndex = null;
+        let memberViewMode = localStorage.getItem('member_view_mode') || 'grid';
 
-        // Login & Session State (Baru)
-        let activeUser = null; // { name: 'Admin', role: 'admin' } atau { name: 'Raihan', role: 'pt' }
-
-        let currentLoginMode = 'staff'; // 'staff' or 'admin'
+        let activeUser = null;
+        let currentLoginMode = 'staff';
         let dateSortAsc = false;
         let isFirstMembersSnapshot = true;
         let isFirstLogsSnapshot = true;
@@ -794,6 +804,278 @@
             }
             return '1234';
         }
+
+        function setMemberViewMode(mode) {
+            memberViewMode = mode;
+            localStorage.setItem('member_view_mode', mode);
+            const btnGrid = document.getElementById('btnViewGrid');
+            const btnRow = document.getElementById('btnViewRow');
+            if (btnGrid && btnRow) {
+                if (mode === 'grid') {
+                    btnGrid.className = 'p-1.5 rounded-lg bg-gymRed text-white shadow-sm transition';
+                    btnRow.className = 'p-1.5 rounded-lg text-gray-500 hover:text-gymRed transition';
+                } else {
+                    btnRow.className = 'p-1.5 rounded-lg bg-gymRed text-white shadow-sm transition';
+                    btnGrid.className = 'p-1.5 rounded-lg text-gray-500 hover:text-gymRed transition';
+                }
+            }
+            renderMembers();
+        }
+
+        function renderPTTabs() {
+            const container = document.getElementById('ptTabsContainer');
+            if (!container) return;
+
+            let html = `
+                <button onclick="selectPTTab('Semua PT')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm ${selectedPT === 'Semua PT' ? 'bg-gymRed text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                    Semua PT
+                </button>
+            `;
+
+            ptList.forEach(pt => {
+                const isActive = (selectedPT === pt);
+                html += `
+                    <button onclick="selectPTTab('${pt}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm ${isActive ? 'bg-gymRed text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                        ${pt}
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function selectPTTab(ptName) {
+            selectedPT = ptName;
+            const titleEl = document.getElementById('activePTTitle');
+            if (titleEl) titleEl.innerText = ptName;
+            renderPTTabs();
+            renderMembers();
+            renderLogs();
+            renderBookings();
+        }
+
+        function renderMembers() {
+            const container = document.getElementById('memberListContainer');
+            const searchInput = document.getElementById('searchInput');
+            const titleEl = document.getElementById('activePTTitle');
+            if (!container) return;
+
+            if (titleEl) titleEl.innerText = selectedPT;
+
+            const isPT = activeUser && activeUser.role === 'pt';
+            const isAdmin = activeUser && activeUser.role === 'admin';
+            const isHeadCoach = activeUser && activeUser.role === 'head_coach';
+
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            let filtered = members.filter(m => {
+                if (isPT && m.ptName !== activeUser.name) return false;
+                if (!isPT && selectedPT !== 'Semua PT' && m.ptName !== selectedPT) return false;
+                if (query && !m.name.toLowerCase().includes(query) && !m.ptName.toLowerCase().includes(query)) return false;
+                return true;
+            });
+
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white rounded-2xl p-8 text-center text-gray-400 border border-gray-100 text-xs">
+                        Tidak ada data member yang ditemukan.
+                    </div>
+                `;
+                return;
+            }
+
+            // Sync view mode buttons styling
+            const btnGrid = document.getElementById('btnViewGrid');
+            const btnRow = document.getElementById('btnViewRow');
+            if (btnGrid && btnRow) {
+                if (memberViewMode === 'grid') {
+                    btnGrid.className = 'p-1.5 rounded-lg bg-gymRed text-white shadow-sm transition';
+                    btnRow.className = 'p-1.5 rounded-lg text-gray-500 hover:text-gymRed transition';
+                } else {
+                    btnRow.className = 'p-1.5 rounded-lg bg-gymRed text-white shadow-sm transition';
+                    btnGrid.className = 'p-1.5 rounded-lg text-gray-500 hover:text-gymRed transition';
+                }
+            }
+
+            if (memberViewMode === 'row') {
+                container.className = 'space-y-2';
+                container.innerHTML = filtered.map(m => {
+                    const total = Number(m.totalSessions) || 1;
+                    const used = Number(m.sessionsUsed) || 0;
+                    const sisa = Math.max(0, total - used);
+                    const pct = Math.min(100, Math.round((used / total) * 100));
+
+                    let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                    let barColor = 'bg-emerald-500';
+                    let statusText = 'AKTIF';
+                    let statusBg = 'bg-emerald-100 text-emerald-700';
+
+                    if (sisa === 0) {
+                        badgeColor = 'bg-red-100 text-red-800 border-red-200';
+                        barColor = 'bg-gymRed';
+                        statusText = 'HABIS';
+                        statusBg = 'bg-red-100 text-red-700';
+                    } else if (sisa <= 2) {
+                        badgeColor = 'bg-orange-100 text-orange-800 border-orange-200';
+                        barColor = 'bg-orange-500';
+                        statusText = `SISA ${sisa} SESI`;
+                        statusBg = 'bg-orange-100 text-orange-700';
+                    } else if (sisa <= 4) {
+                        badgeColor = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                        barColor = 'bg-yellow-500';
+                        statusText = `SISA ${sisa} SESI`;
+                        statusBg = 'bg-yellow-100 text-yellow-700';
+                    }
+
+                    return `
+                        <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-xl bg-red-50 text-gymRed font-bold flex items-center justify-center flex-shrink-0">
+                                    ${m.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="font-bold text-gray-800 truncate">${m.name}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold ${statusBg}">${statusText}</span>
+                                    </div>
+                                    <div class="text-[11px] text-gray-500 truncate">
+                                        PT: <b class="text-gray-700">${m.ptName}</b> • Terakhir: ${m.lastCut || '-'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end flex-wrap">
+                                <div class="w-36">
+                                    <div class="flex justify-between text-[11px] font-bold text-gray-600 mb-1">
+                                        <span>Terpakai: ${used}/${total}</span>
+                                        <span class="text-gymDark">Sisa: ${sisa} Sesi</span>
+                                    </div>
+                                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                                        <div class="${barColor} h-full transition-all duration-300" style="width: ${pct}%"></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    ${m.phone ? `
+                                        <a href="${formatWAUrl(m.phone)}" target="_blank" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition" title="Chat WhatsApp">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                        </a>
+                                    ` : ''}
+                                    <button onclick="openMemberLogsModal('${m.id}')" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition" title="Lihat Riwayat Sesi">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </button>
+                                    ${isAdmin ? `
+                                        <button onclick="openEditMemberModal('${m.id}')" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition" title="Edit Member">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        </button>
+                                        <button onclick="removeMemberFromCloud('${m.id}')" class="p-2 bg-red-50 hover:bg-red-100 text-gymRed rounded-lg transition" title="Hapus Member">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    ` : ''}
+                                    ${!isHeadCoach ? `
+                                        <button onclick="openCutCustomModal('${m.id}')" class="bg-gymRed hover:bg-gymRedHover text-white px-3 py-2 rounded-lg font-bold transition shadow-sm flex items-center gap-1">
+                                            <span>Cut Sesi</span>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                return;
+            }
+
+            // Grid Mode (Default)
+            container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
+            container.innerHTML = filtered.map(m => {
+                const total = Number(m.totalSessions) || 1;
+                const used = Number(m.sessionsUsed) || 0;
+                const sisa = Math.max(0, total - used);
+                const pct = Math.min(100, Math.round((used / total) * 100));
+
+                let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                let barColor = 'bg-emerald-500';
+                let statusText = 'AKTIF';
+                let statusBg = 'bg-emerald-100 text-emerald-700';
+
+                if (sisa === 0) {
+                    badgeColor = 'bg-red-100 text-red-800 border-red-200';
+                    barColor = 'bg-gymRed';
+                    statusText = 'HABIS';
+                    statusBg = 'bg-red-100 text-red-700';
+                } else if (sisa <= 2) {
+                    badgeColor = 'bg-orange-100 text-orange-800 border-orange-200';
+                    barColor = 'bg-orange-500';
+                    statusText = `SISA ${sisa} SESI`;
+                    statusBg = 'bg-orange-100 text-orange-700';
+                } else if (sisa <= 4) {
+                    badgeColor = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                    barColor = 'bg-yellow-500';
+                    statusText = `SISA ${sisa} SESI`;
+                    statusBg = 'bg-yellow-100 text-yellow-700';
+                }
+
+                return `
+                    <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-gray-100 space-y-2.5 flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-9 h-9 rounded-xl bg-red-50 text-gymRed font-bold flex items-center justify-center flex-shrink-0">
+                                        ${m.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h3 class="font-bold text-gray-800 text-sm truncate">${m.name}</h3>
+                                        <div class="flex items-center gap-1 flex-wrap">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold ${statusBg}">${statusText}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    ${m.phone ? `
+                                        <a href="${formatWAUrl(m.phone)}" target="_blank" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition" title="Chat WhatsApp">
+                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                        </a>
+                                    ` : ''}
+                                    <button onclick="openMemberLogsModal('${m.id}')" class="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition" title="Riwayat">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </button>
+                                    ${isAdmin ? `
+                                        <button onclick="openEditMemberModal('${m.id}')" class="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition" title="Edit">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        </button>
+                                        <button onclick="removeMemberFromCloud('${m.id}')" class="p-1.5 bg-red-50 hover:bg-red-100 text-gymRed rounded-lg transition" title="Hapus">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 truncate">PT: <b class="text-gray-700">${m.ptName}</b> • Cut: ${m.lastCut || '-'}</p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-[11px] font-bold text-gray-600">
+                                <span>Terpakai: ${used}/${total}</span>
+                                <span class="text-gymDark">Sisa: ${sisa} Sesi</span>
+                            </div>
+                            <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                                <div class="${barColor} h-full transition-all duration-300" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                        ${!isHeadCoach ? `
+                            <button onclick="openCutCustomModal('${m.id}')" class="w-full bg-gymRed hover:bg-gymRedHover text-white py-2 rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5 mt-1">
+                                <span>Cut Sesi</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Export functions to global window scope
+        window.renderMembers = renderMembers;
+        window.renderLogs = renderLogs;
+        window.renderPTTabs = renderPTTabs;
+        window.selectPTTab = selectPTTab;
+        window.setMemberViewMode = setMemberViewMode;
 
         async function saveUserPinsToCloud(newPins) {
             userPins = newPins;
@@ -891,6 +1173,7 @@
             }
 
             activeUser = { name: userChoice, role: role };
+            localStorage.setItem('active_user', JSON.stringify(activeUser));
             sessionStorage.setItem('active_user', JSON.stringify(activeUser));
 
             const pinInput = document.getElementById('loginPinInput');
@@ -914,6 +1197,7 @@
         function logoutUser() {
             activeUser = null;
             sessionStorage.removeItem('active_user');
+            localStorage.removeItem('active_user');
             updateUIForRole();
             showLoginModal();
             showToast("Anda telah logout.");
@@ -1022,7 +1306,7 @@
             // Immediate load from local storage cache for instant UI rendering
             loadLocalStorageData();
 
-            const savedSession = sessionStorage.getItem('active_user');
+            const savedSession = localStorage.getItem('active_user') || sessionStorage.getItem('active_user');
             if (savedSession) {
                 try {
                     activeUser = JSON.parse(savedSession);
@@ -1043,6 +1327,7 @@
             if (!activeUser) {
                 showLoginModal();
             } else {
+                closeModal('modalLogin');
                 renderPTTabs();
                 renderMembers();
                 renderLogs();
@@ -1053,343 +1338,535 @@
             initApp();
         };
 
-        function subscribeCloudData() {
-            if (!db) return;
-            
-            const statusTextEl = document.getElementById('cloudStatusText');
-            const connStatusEl = document.getElementById('firebaseConnectionStatus');
-
-            // Synchronize Bookings across all devices (Baru)
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), (snapshot) => {
-                const cloudBookings = [];
-                snapshot.forEach((doc) => {
-                    cloudBookings.push({ id: doc.id, ...doc.data() });
-                });
-                bookings = cloudBookings;
-                localStorage.setItem('pt_bookings', JSON.stringify(bookings));
-                renderBookings();
-                checkExpiredBookings();
-            }, (error) => {
-                console.warn("Error cloud bookings:", error);
-            });
-
-            // Synchronize Approvals across all devices
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'approvals'), (snapshot) => {
-                const cloudApprovals = [];
-                snapshot.forEach((doc) => {
-                    cloudApprovals.push({ id: doc.id, ...doc.data() });
-                });
-                approvals = cloudApprovals;
-                localStorage.setItem('pt_approvals', JSON.stringify(approvals));
-                updateApprovalBadge();
-                renderApprovals();
-                renderMembers();
-            }, (error) => {
-                console.warn("Error cloud approvals:", error);
-            });
-
-            // Synchronize User PINs across all devices
-            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pins'), (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data && data.pins) {
-                        userPins = data.pins;
-                        localStorage.setItem('user_pins', JSON.stringify(userPins));
-                    }
-                }
-            }, (error) => {
-                console.warn("Error cloud PINs:", error);
-            });
-
-            // Synchronize PT List across all devices
-            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), async (docSnap) => {
-                if (!docSnap.exists() && isFirstPTsSnapshot) {
-                    isFirstPTsSnapshot = false;
-                    updateLoginUserSelect();
-                    renderPTTabs();
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), { list: ptList });
-                    return;
-                }
-                isFirstPTsSnapshot = false;
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data && Array.isArray(data.list)) {
-                        ptList = data.list;
-                        localStorage.setItem('pt_list', JSON.stringify(ptList));
-                        updateLoginUserSelect();
-                        renderPTTabs();
-                        renderMembers();
-                        renderLogs();
-                        if (editingPTIndex !== null) renderPTManageList();
-                    }
-                }
-            }, (error) => {
-                console.warn("Error cloud PTs:", error);
-            });
-
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'members'), async (snapshot) => {
-                if (snapshot.empty && isFirstMembersSnapshot) {
-                    isFirstMembersSnapshot = false;
-                    const savedMembers = localStorage.getItem('pt_members');
-                    const initialMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
-                    members = initialMembers;
-                    renderPTTabs();
-                    renderMembers();
-                    for (const m of initialMembers) {
-                        try {
-                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(m.id)), m);
-                        } catch(e){}
-                    }
-                    return;
-                }
-                isFirstMembersSnapshot = false;
-
-                const cloudMembers = [];
-                snapshot.forEach((doc) => {
-                    cloudMembers.push({ id: doc.id, ...doc.data() });
-                });
-                members = cloudMembers;
-                localStorage.setItem('pt_members', JSON.stringify(members));
-                renderPTTabs();
-                renderMembers();
-
-                if (statusTextEl) statusTextEl.innerHTML = `⚡ Realtime Active`;
-                if (connStatusEl) connStatusEl.innerHTML = `<span class="text-emerald-600 font-bold">✓ Terhubung ke Cloud Real-time Database</span>`;
-            }, (error) => {
-                console.warn("Error cloud members:", error);
-                if (statusTextEl) statusTextEl.innerHTML = `Offline / Error`;
-                if (connStatusEl) {
-                    if (error.code === 'permission-denied') {
-                        connStatusEl.innerHTML = `<span class="text-red-600 font-bold">❌ Rules Firestore Ditolak! Aktifkan 'Test Mode' di Firebase Console.</span>`;
-                    } else {
-                        connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Firestore Error: ${error.message}</span>`;
-                    }
-                }
-                loadLocalStorageData();
-            });
-
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'logs'), async (snapshot) => {
-                if (snapshot.empty && isFirstLogsSnapshot) {
-                    isFirstLogsSnapshot = false;
-                    const savedLogs = localStorage.getItem('pt_logs');
-                    const initialLogs = savedLogs ? JSON.parse(savedLogs) : defaultLogs;
-                    logs = initialLogs;
-                    renderLogs();
-                    for (const l of initialLogs) {
-                        try {
-                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(l.id)), l);
-                        } catch(e){}
-                    }
-                    return;
-                }
-                isFirstLogsSnapshot = false;
-
-                const cloudLogs = [];
-                snapshot.forEach((doc) => {
-                    cloudLogs.push({ id: doc.id, ...doc.data() });
-                });
-                logs = cloudLogs;
-                localStorage.setItem('pt_logs', JSON.stringify(logs));
-                renderLogs();
-            }, (error) => {
-                console.warn("Error cloud logs:", error);
-            });
+        // ==================== FORM & MODAL HANDLERS ====================
+        function openAddMemberModal() {
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa menambah member.");
+                return;
+            }
+            const ptSelect = document.getElementById('memberPT');
+            if (ptSelect) {
+                ptSelect.innerHTML = ptList.map(pt => `<option value="${pt}">${pt}</option>`).join('');
+            }
+            document.getElementById('memberName').value = '';
+            document.getElementById('memberPhone').value = '';
+            document.getElementById('memberTotalSessions').value = '10';
+            document.getElementById('memberUsedSessions').value = '0';
+            openModal('modalAddMember');
         }
 
-        function loadLocalStorageData() {
-            const savedPTs = localStorage.getItem('pt_list');
-            if (savedPTs !== null) {
-                try { ptList = JSON.parse(savedPTs); } catch(e) {}
+        async function handleAddMember(e) {
+            e.preventDefault();
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa menambah member.");
+                return;
             }
 
-            const savedMembers = localStorage.getItem('pt_members');
-            if (savedMembers !== null) {
-                try { members = JSON.parse(savedMembers); } catch(e) { members = [...defaultMembers]; }
-            } else {
-                members = [...defaultMembers];
-                localStorage.setItem('pt_members', JSON.stringify(members));
+            const name = document.getElementById('memberName')?.value.trim();
+            const phone = document.getElementById('memberPhone')?.value.trim() || '';
+            const ptName = document.getElementById('memberPT')?.value;
+            const totalSessions = Number(document.getElementById('memberTotalSessions')?.value) || 10;
+            const sessionsUsed = Number(document.getElementById('memberUsedSessions')?.value) || 0;
+
+            if (!name) {
+                showToast("Nama member wajib diisi.");
+                return;
             }
 
-            const savedLogs = localStorage.getItem('pt_logs');
-            if (savedLogs !== null) {
-                try { logs = JSON.parse(savedLogs); } catch(e) { logs = [...defaultLogs]; }
-            } else {
-                logs = [...defaultLogs];
-                localStorage.setItem('pt_logs', JSON.stringify(logs));
-            }
+            const newMember = {
+                id: Date.now().toString(),
+                name: name,
+                phone: phone,
+                ptName: ptName,
+                totalSessions: totalSessions,
+                sessionsUsed: sessionsUsed,
+                lastCut: '-'
+            };
 
-            const savedBookings = localStorage.getItem('pt_bookings');
-            if (savedBookings !== null) {
-                try { bookings = JSON.parse(savedBookings); } catch(e) { bookings = []; }
-            } else {
-                bookings = [];
-            }
-
-            const savedApprovals = localStorage.getItem('pt_approvals');
-            if (savedApprovals !== null) {
-                try { approvals = JSON.parse(savedApprovals); } catch(e) { approvals = []; }
-            }
-
-            const savedPins = localStorage.getItem('user_pins');
-            if (savedPins !== null) {
-                try { userPins = JSON.parse(savedPins); } catch(e) { userPins = {}; }
-            }
-
-            updateLoginUserSelect();
+            await saveMemberToCloud(newMember);
+            closeModal('modalAddMember');
+            renderMembers();
             renderPTTabs();
+            showToast(`Member ${name} berhasil ditambahkan!`);
+        }
+
+        function openEditMemberModal(id) {
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa edit member.");
+                return;
+            }
+
+            const m = members.find(mem => String(mem.id) === String(id));
+            if (!m) return;
+
+            document.getElementById('editMemberId').value = m.id;
+            document.getElementById('editMemberName').value = m.name;
+            document.getElementById('editMemberPhone').value = m.phone || '';
+            
+            const ptSelect = document.getElementById('editMemberPT');
+            if (ptSelect) {
+                ptSelect.innerHTML = ptList.map(pt => `<option value="${pt}" ${pt === m.ptName ? 'selected' : ''}>${pt}</option>`).join('');
+            }
+
+            document.getElementById('editMemberTotalSessions').value = m.totalSessions;
+            document.getElementById('editMemberUsedSessions').value = m.sessionsUsed;
+
+            openModal('modalEditMember');
+        }
+
+        async function handleEditMember(e) {
+            e.preventDefault();
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa edit member.");
+                return;
+            }
+
+            const id = document.getElementById('editMemberId')?.value;
+            const m = members.find(mem => String(mem.id) === String(id));
+            if (!m) return;
+
+            m.name = document.getElementById('editMemberName')?.value.trim();
+            m.phone = document.getElementById('editMemberPhone')?.value.trim() || '';
+            m.ptName = document.getElementById('editMemberPT')?.value;
+            m.totalSessions = Number(document.getElementById('editMemberTotalSessions')?.value) || 1;
+            m.sessionsUsed = Number(document.getElementById('editMemberUsedSessions')?.value) || 0;
+
+            await saveMemberToCloud(m);
+            closeModal('modalEditMember');
+            renderMembers();
+            renderPTTabs();
+            showToast(`Data member ${m.name} berhasil diperbarui!`);
+        }
+
+        function openCutCustomModal(id) {
+            if (!activeUser) {
+                showToast("Silakan login terlebih dahulu.");
+                return;
+            }
+            if (activeUser.role === 'head_coach') {
+                showToast("Akses Ditolak: Head Coach hanya dapat membaca data.");
+                return;
+            }
+
+            const m = members.find(mem => String(mem.id) === String(id));
+            if (!m) return;
+
+            const isPT = activeUser && activeUser.role === 'pt';
+            if (isPT && m.ptName !== activeUser.name) {
+                showToast(`Anda hanya bisa memotong sesi untuk member milik ${activeUser.name}.`);
+                return;
+            }
+
+            document.getElementById('cutMemberId').value = m.id;
+            
+            const now = new Date();
+            document.getElementById('cutDate').value = now.toISOString().split('T')[0];
+            document.getElementById('cutTime').value = now.toTimeString().slice(0, 5);
+            document.getElementById('cutAmount').value = '1';
+            document.getElementById('cutNotes').value = '';
+
+            openModal('modalCutCustom');
+        }
+
+        async function handleCutCustom(e) {
+            e.preventDefault();
+            const id = document.getElementById('cutMemberId')?.value;
+            const m = members.find(mem => String(mem.id) === String(id));
+            if (!m) return;
+
+            const isPT = activeUser && activeUser.role === 'pt';
+            const rawDate = document.getElementById('cutDate')?.value;
+            const date = isoToDMY(rawDate);
+            const time = document.getElementById('cutTime')?.value;
+            const amountCut = Number(document.getElementById('cutAmount')?.value) || 1;
+            const notes = document.getElementById('cutNotes')?.value.trim() || '';
+
+            if (isPT) {
+                // Pengajuan butuh approval admin jika dari PT
+                const newReq = {
+                    id: Date.now().toString(),
+                    type: 'cut_session',
+                    ptName: activeUser.name,
+                    memberId: m.id,
+                    memberName: m.name,
+                    amountCut: amountCut,
+                    date: date,
+                    time: time,
+                    notes: notes,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+                await saveApprovalToCloud(newReq);
+                closeModal('modalCutCustom');
+                renderMembers();
+                showToast("Pengajuan Cut Sesi dikirim ke Admin untuk disetujui.");
+                return;
+            }
+
+            // Jika Admin, langsung eksekusi cut sesi
+            m.sessionsUsed += amountCut;
+            m.lastCut = `${date} jam ${time}`;
+
+            const newLog = {
+                id: Date.now().toString(),
+                date: date,
+                time: time,
+                ptName: m.ptName,
+                memberName: m.name,
+                amountCut: amountCut,
+                sisaSesi: Math.max(0, m.totalSessions - m.sessionsUsed),
+                notes: notes || 'Cut Sesi Manual',
+                action: 'create'
+            };
+
+            await saveMemberToCloud(m);
+            await saveLogToCloud(newLog);
+
+            closeModal('modalCutCustom');
             renderMembers();
             renderLogs();
-            renderBookings();
-            updateApprovalBadge();
-            checkExpiredBookings();
+            showToast(`Berhasil memotong ${amountCut} sesi untuk ${m.name}!`);
         }
 
-        // Helper untuk Simpan/Hapus Booking
-        async function saveBookingToCloud(bookingObj) {
-            const idx = bookings.findIndex(b => String(b.id) === String(bookingObj.id));
-            if (idx >= 0) bookings[idx] = bookingObj;
-            else bookings.push(bookingObj);
-            localStorage.setItem('pt_bookings', JSON.stringify(bookings));
-
-            if (db) {
-                try {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', String(bookingObj.id)), bookingObj);
-                } catch(e) {
-                    console.warn("Error saving booking to cloud:", e);
-                }
+        function openEditLogModal(logId) {
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang dapat mengedit log.");
+                return;
             }
-            renderBookings();
+            const l = logs.find(log => String(log.id) === String(logId));
+            if (!l) return;
+
+            document.getElementById('editLogId').value = l.id;
+            document.getElementById('editLogDate').value = dmyToISO(l.date);
+            document.getElementById('editLogTime').value = l.time;
+            document.getElementById('editLogNotes').value = l.notes || '';
+
+            openModal('modalEditLog');
         }
 
-        async function removeBookingFromCloud(bookingId) {
-            bookings = bookings.filter(b => String(b.id) !== String(bookingId));
-            localStorage.setItem('pt_bookings', JSON.stringify(bookings));
-
-            if (db) {
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', String(bookingId)));
-                } catch(e) {
-                    console.warn("Error removing booking from cloud:", e);
-                }
+        async function handleEditLog(e) {
+            e.preventDefault();
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang dapat mengedit log.");
+                return;
             }
-            renderBookings();
+
+            const id = document.getElementById('editLogId')?.value;
+            const l = logs.find(log => String(log.id) === String(id));
+            if (!l) return;
+
+            const rawDate = document.getElementById('editLogDate')?.value;
+            l.date = isoToDMY(rawDate);
+            l.time = document.getElementById('editLogTime')?.value;
+            l.notes = document.getElementById('editLogNotes')?.value.trim();
+
+            await saveLogToCloud({ ...l, action: 'update' });
+            closeModal('modalEditLog');
+            renderLogs();
+            showToast("Log riwayat berhasil diperbarui!");
         }
 
-        // Fungsi Pemeriksa Auto-Cut Jam Booking Terlewat (Real-Time)
-        async function checkExpiredBookings() {
-            if (!bookings || bookings.length === 0) return;
-            const now = new Date();
-            let hasChanges = false;
-
-            for (const b of [...bookings]) {
-                if (b.status !== 'booked') continue;
-
-                // Konversi Tanggal DD-MM-YYYY ke objek Date
-                const isoDate = dmyToISO(b.date);
-                const bookingDateTimeStr = `${isoDate}T${b.time}:00`;
-                const bookingDateObj = new Date(bookingDateTimeStr);
-
-                if (isNaN(bookingDateObj.getTime())) continue;
-
-                // Jika Tanggal & Jam Booking sudah terlewat waktu sekarang
-                if (bookingDateObj <= now) {
-                    hasChanges = true;
-                    b.status = 'completed';
-
-                    const member = members.find(m => String(m.id) === String(b.memberId) || m.name === b.memberName);
-                    if (member && (member.totalSessions - member.sessionsUsed) > 0) {
-                        member.sessionsUsed += 1;
-                        member.lastCut = `${b.date} jam ${b.time} (Booking Auto-Cut)`;
-
-                        const newLog = {
-                            id: Date.now().toString() + '_' + Math.floor(Math.random() * 1000),
-                            date: b.date,
-                            time: b.time,
-                            ptName: b.ptName,
-                            memberName: member.name,
-                            amountCut: 1,
-                            sisaSesi: Math.max(0, member.totalSessions - member.sessionsUsed),
-                            notes: `[Auto-Cut Booking] ${b.notes || 'Latihan Terjadwal'}`,
-                            action: 'create'
-                        };
-
-                        await saveMemberToCloud(member);
-                        await saveLogToCloud(newLog);
-                    }
-
-                    await saveBookingToCloud(b);
-                    showToast(`⏰ Jam booking ${b.memberName} (${b.time}) telah terlewat. Otomatis dipotong!`);
-                }
+        function openManagePTModal() {
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa mengelola daftar PT.");
+                return;
             }
-
-            if (hasChanges) {
-                renderMembers();
-                renderLogs();
-                renderBookings();
-            }
+            renderPTManageList();
+            openModal('modalManagePT');
         }
 
-        // Render Daftar Booking
-        function renderBookings() {
-            const container = document.getElementById('bookingListContainer');
-            const countBadge = document.getElementById('bookingCountBadge');
+        function renderPTManageList() {
+            const container = document.getElementById('ptListContainer');
             if (!container) return;
+
+            let html = '';
+            ptList.forEach((pt, index) => {
+                const pin = getUserPin(pt);
+                if (editingPTIndex === index) {
+                    html += `
+                        <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs">
+                            <input type="text" id="editPTNameInput" value="${pt}" class="flex-1 border border-gray-300 rounded p-1 text-xs focus:outline-none">
+                            <button onclick="saveEditPT(${index})" class="text-emerald-600 font-bold hover:underline">Simpan</button>
+                            <button onclick="cancelEditPT()" class="text-gray-400 font-semibold hover:underline">Batal</button>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-700">${pt}</span>
+                                <span class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded font-mono">PIN: ${pin}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="resetUserPin('${pt}')" class="text-amber-600 font-semibold hover:underline" title="Reset PIN User">🔑 Reset PIN</button>
+                                <button onclick="startEditPT(${index})" class="text-blue-600 font-semibold hover:underline">Edit</button>
+                                <button onclick="deletePT(${index})" class="text-red-600 font-semibold hover:underline">Hapus</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            // Admin PIN Status info line
+            const adminPin = getUserPin('Admin');
+            html += `
+                <div class="mt-3 border-t pt-2 flex items-center justify-between text-xs bg-red-50 p-2 rounded-lg border border-red-100">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-gymRed">🔑 Akun Admin</span>
+                        <span class="bg-red-200 text-red-900 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">PIN: ${adminPin}</span>
+                    </div>
+                    <button onclick="resetUserPin('Admin')" class="text-red-700 font-bold hover:underline text-xs">Reset PIN Admin</button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function openMemberLogsModal(id) {
+            const m = members.find(mem => String(mem.id) === String(id));
+            if (!m) return;
+
+            const titleEl = document.getElementById('memberLogsTitle');
+            const statsEl = document.getElementById('memberLogsStats');
+            const tbody = document.getElementById('memberLogsTableBody');
+
+            if (titleEl) titleEl.innerText = `Riwayat Cutting: ${m.name}`;
+            if (statsEl) statsEl.innerText = `PT: ${m.ptName} • Total Paket: ${m.totalSessions} • Sisa Sesi: ${Math.max(0, m.totalSessions - m.sessionsUsed)}`;
+
+            const memberLogs = logs.filter(l => l.memberName === m.name);
+            memberLogs.sort((a, b) => {
+                const dtA = `${dmyToISO(a.date)} ${a.time}`;
+                const dtB = `${dmyToISO(b.date)} ${b.time}`;
+                return dtB.localeCompare(dtA);
+            });
+
+            if (tbody) {
+                if (memberLogs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada riwayat cutting sesi untuk member ini.</td></tr>`;
+                } else {
+                    tbody.innerHTML = memberLogs.map(l => `
+                        <tr class="hover:bg-gray-50 text-xs">
+                            <td class="py-2.5 px-3 font-semibold text-gray-700">${l.date}</td>
+                            <td class="py-2.5 px-3 text-gray-500">${l.time}</td>
+                            <td class="py-2.5 px-3 text-gray-600 font-medium">${l.ptName}</td>
+                            <td class="py-2.5 px-3 font-bold text-gymRed">-${l.amountCut} Sesi</td>
+                            <td class="py-2.5 px-3 text-gray-600 font-bold">${l.sisaSesi} Sesi</td>
+                            <td class="py-2.5 px-3 text-gray-500 italic">${l.notes || '-'}</td>
+                        </tr>
+                    `).join('');
+                }
+            }
+
+            openModal('modalMemberLogs');
+        }
+
+        function confirmDelete(type, id) {
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang dapat menghapus data.");
+                return;
+            }
+            pendingDeleteType = type;
+            pendingDeleteId = id;
+            
+            const titleEl = document.getElementById('confirmTitle');
+            const msgEl = document.getElementById('confirmMessage');
+            if (titleEl) titleEl.innerText = type === 'log' ? 'Hapus Log Riwayat?' : 'Hapus Data?';
+            if (msgEl) msgEl.innerText = type === 'log' ? 'Log transaksi ini akan dihapus permanen dari sistem & Google Sheets.' : 'Data ini akan dihapus permanen.';
+            
+            openModal('modalConfirm');
+        }
+
+        async function executeConfirmDelete() {
+            if (!pendingDeleteType || !pendingDeleteId) return;
+
+            if (pendingDeleteType === 'log') {
+                await removeLogFromCloud(pendingDeleteId);
+                renderLogs();
+                showToast("Log riwayat berhasil dihapus.");
+            }
+
+            closeModal('modalConfirm');
+            pendingDeleteType = null;
+            pendingDeleteId = null;
+        }
+
+        function renderLogs() {
+            const tbody = document.getElementById('logTableBody');
+            const statsBadge = document.getElementById('logStatsBadge');
+            const sectionTitle = document.getElementById('logSectionTitle');
+            const dateFromInput = document.getElementById('dateFromInput');
+            const dateToInput = document.getElementById('dateToInput');
+            if (!tbody) return;
+
+            if (sectionTitle) sectionTitle.innerText = `Riwayat Cutting Sesi (${selectedPT})`;
 
             const isPT = activeUser && activeUser.role === 'pt';
             const isAdmin = activeUser && activeUser.role === 'admin';
 
-            // Filter booking sesuai pilihan PT atau role PT
-            const activeBookings = bookings.filter(b => {
-                if (b.status !== 'booked') return false;
-                if (isPT) return b.ptName === activeUser.name;
-                return (selectedPT === 'Semua PT') || (b.ptName === selectedPT);
+            let filtered = logs.filter(l => {
+                if (isPT && l.ptName !== activeUser.name) return false;
+                if (!isPT && selectedPT !== 'Semua PT' && l.ptName !== selectedPT) return false;
+
+                const logIsoDate = dmyToISO(l.date);
+                if (dateFromInput?.value && logIsoDate < dateFromInput.value) return false;
+                if (dateToInput?.value && logIsoDate > dateToInput.value) return false;
+
+                return true;
             });
 
-            activeBookings.sort((a, b) => {
+            filtered.sort((a, b) => {
                 const dtA = `${dmyToISO(a.date)} ${a.time}`;
                 const dtB = `${dmyToISO(b.date)} ${b.time}`;
-                return dtA.localeCompare(dtB);
+                return dateSortAsc ? dtA.localeCompare(dtB) : dtB.localeCompare(dtA);
             });
 
-            if (countBadge) countBadge.innerText = `${activeBookings.length} Scheduled`;
+            if (statsBadge) {
+                const totalCutCount = filtered.reduce((acc, curr) => acc + (Number(curr.amountCut) || 1), 0);
+                statsBadge.innerHTML = `<span>Total Transaksi: <b>${filtered.length}</b></span> • <span>Sesi Dipotong: <b>${totalCutCount}</b></span>`;
+            }
 
-            if (activeBookings.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full p-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-center text-gray-400 text-xs italic">
-                        Tidak ada jadwal booking sesi yang akan datang.
-                    </div>
-                `;
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400 text-xs">Tidak ada data riwayat cutting sesi.</td></tr>`;
                 return;
             }
 
-            let html = '';
-            activeBookings.forEach(b => {
-                const canDelete = isAdmin || (isPT && b.ptName === activeUser.name);
-                html += `
-                    <div class="bg-purple-50/60 border border-purple-100 rounded-xl p-3 flex flex-col justify-between gap-2 shadow-sm hover:border-purple-300 transition text-xs">
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
-                                <span class="font-bold text-purple-950 truncate">${b.memberName}</span>
-                            </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                                ⏳ ${isoToDMY(b.date)} jam ${b.time}
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between text-[11px] text-gray-600 border-t border-purple-100 pt-2">
-                            <div>PT: <b>${b.ptName}</b> ${b.notes ? `• <span class="italic text-gray-500">${b.notes}</span>` : ''}</div>
-                            ${canDelete ? `
-                                <button onclick="deleteBooking('${b.id}')" class="text-red-500 hover:text-red-700 font-semibold text-[11px] hover:underline flex items-center gap-0.5" title="Batalkan Booking">
-                                    🗑️ Batalkan
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
+            tbody.innerHTML = filtered.map(l => `
+                <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                    <td class="py-3 px-4 font-bold text-gray-800">${l.date}</td>
+                    <td class="py-3 px-4 text-gray-500">${l.time}</td>
+                    <td class="py-3 px-4 font-semibold text-gray-700">${l.ptName}</td>
+                    <td class="py-3 px-4 font-bold text-gymDark">${l.memberName}</td>
+                    <td class="py-3 px-4 font-bold text-gymRed">-${l.amountCut} Sesi</td>
+                    <td class="py-3 px-4 font-bold text-emerald-600">${l.sisaSesi} Sesi</td>
+                    <td class="py-3 px-4 text-gray-500 italic max-w-xs truncate">${l.notes || '-'}</td>
+                    <td class="py-3 px-4 text-right">
+                        ${isAdmin ? `
+                            <button onclick="openEditLogModal('${l.id}')" class="text-blue-600 hover:text-blue-800 font-semibold mr-2">Edit</button>
+                            <button onclick="confirmDelete('log', '${l.id}')" class="text-red-600 hover:text-red-800 font-semibold">Hapus</button>
+                        ` : `-`}
+                    </td>
+                </tr>
+            `).join('');
         }
 
+        function resetDateFilter() {
+            const dateFromInput = document.getElementById('dateFromInput');
+            const dateToInput = document.getElementById('dateToInput');
+            if (dateFromInput) dateFromInput.value = '';
+            if (dateToInput) dateToInput.value = '';
+            renderLogs();
+        }
+
+        function toggleDateSort() {
+            dateSortAsc = !dateSortAsc;
+            const arrow = document.getElementById('thDateArrow');
+            if (arrow) arrow.innerText = dateSortAsc ? '▼' : '▲';
+            renderLogs();
+        }
+
+        // ==================== APPROVAL SYSTEM ====================
+        function updateApprovalBadge() {
+            const badgeCountEl = document.getElementById('approvalBadgeCount');
+            const btnApprovals = document.getElementById('btnApprovals');
+            if (!badgeCountEl || !btnApprovals) return;
+
+            const pendingApprovals = approvals.filter(a => a.status === 'pending');
+            badgeCountEl.innerText = pendingApprovals.length;
+
+            if (activeUser && activeUser.role === 'admin') {
+                if (pendingApprovals.length > 0) {
+                    btnApprovals.classList.remove('hidden');
+                    btnApprovals.classList.add('flex');
+                } else {
+                    btnApprovals.classList.remove('hidden');
+                    btnApprovals.classList.add('flex');
+                }
+            } else {
+                btnApprovals.classList.add('hidden');
+                btnApprovals.classList.remove('flex');
+            }
+        }
+
+        function openApprovalsModal() {
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang dapat melihat pengajuan.");
+                return;
+            }
+            renderApprovals();
+            openModal('modalApprovals');
+        }
+
+        function renderApprovals() {
+            const container = document.getElementById('approvalsListContainer');
+            if (!container) return;
+
+            const pending = approvals.filter(a => a.status === 'pending');
+            if (pending.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs">Tidak ada pengajuan yang menunggu persetujuan.</div>`;
+                return;
+            }
+
+            container.innerHTML = pending.map(a => `
+                <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5 space-y-2 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-amber-900 bg-amber-200/60 px-2 py-0.5 rounded">PT: ${a.ptName}</span>
+                        <span class="text-gray-500 text-[11px]">${a.date} • ${a.time}</span>
+                    </div>
+                    <div class="space-y-0.5">
+                        <div class="font-bold text-gray-800">Member: ${a.memberName}</div>
+                        <div class="text-gray-600">Cut Sesi: <b class="text-gymRed">-${a.amountCut} Sesi</b></div>
+                        ${a.notes ? `<div class="text-gray-500 italic">Catatan: "${a.notes}"</div>` : ''}
+                    </div>
+                    <div class="flex gap-2 pt-2 border-t border-amber-200/60 justify-end">
+                        <button onclick="rejectRequest('${a.id}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg font-semibold transition">
+                            ✕ Tolak
+                        </button>
+                        <button onclick="approveRequest('${a.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg font-semibold transition">
+                            ✓ Izinkan / Setujui
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function approveRequest(id) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const req = approvals.find(a => String(a.id) === String(id));
+            if (!req) return;
+
+            const m = members.find(mem => String(mem.id) === String(req.memberId));
+            if (m) {
+                m.sessionsUsed += Number(req.amountCut) || 1;
+                m.lastCut = `${req.date} jam ${req.time}`;
+                await saveMemberToCloud(m);
+
+                const newLog = {
+                    id: Date.now().toString(),
+                    date: req.date,
+                    time: req.time,
+                    ptName: req.ptName,
+                    memberName: m.name,
+                    amountCut: Number(req.amountCut) || 1,
+                    sisaSesi: Math.max(0, m.totalSessions - m.sessionsUsed),
+                    notes: req.notes || 'Cut Sesi (Approved by Admin)',
+                    action: 'create'
+                };
+                await saveLogToCloud(newLog);
+            }
+
+            await removeApprovalFromCloud(id);
+            renderMembers();
+            renderLogs();
+            showToast("Pengajuan berhasil disetujui & sesi dipotong!");
+        }
+
+        async function rejectRequest(id) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            await removeApprovalFromCloud(id);
+            showToast("Pengajuan ditolak.");
+        }
+
+        // ==================== BOOKING SYSTEM & AUTO-CUT LOGIC ====================
         function openAddBookingModal() {
             if (!activeUser) {
                 showToast("Silakan login terlebih dahulu.");
@@ -1401,20 +1878,23 @@
             }
 
             const selectEl = document.getElementById('bookingMemberSelect');
-            const isPT = activeUser && activeUser.role === 'pt';
-            
-            // Filter member yang sesuai dengan akses trainer
-            const availableMembers = members.filter(m => isPT ? m.ptName === activeUser.name : true);
-            availableMembers.sort((a, b) => a.name.localeCompare(b.name));
+            if (!selectEl) return;
+
+            const isPT = activeUser.role === 'pt';
+            const availableMembers = members.filter(m => {
+                if (isPT && m.ptName !== activeUser.name) return false;
+                const sisa = Math.max(0, (Number(m.totalSessions) || 0) - (Number(m.sessionsUsed) || 0));
+                return sisa > 0;
+            });
 
             if (availableMembers.length === 0) {
-                showToast("Belum ada member terdaftar.");
+                showToast("Tidak ada member aktif dengan sisa sesi yang tersedia.");
                 return;
             }
 
-            if (selectEl) {
-                selectEl.innerHTML = availableMembers.map(m => `<option value="${m.id}">${m.name} (PT: ${m.ptName} • Sisa: ${Math.max(0, m.totalSessions - m.sessionsUsed)})</option>`).join('');
-            }
+            selectEl.innerHTML = availableMembers.map(m => `
+                <option value="${m.id}">${m.name} (PT: ${m.ptName} • Sisa: ${Math.max(0, m.totalSessions - m.sessionsUsed)} Sesi)</option>
+            `).join('');
 
             const now = new Date();
             document.getElementById('bookingDateInput').value = now.toISOString().split('T')[0];
@@ -1426,6 +1906,11 @@
 
         async function handleAddBooking(e) {
             e.preventDefault();
+            if (!activeUser || activeUser.role === 'head_coach') {
+                showToast("Akses Ditolak: Head Coach hanya dapat melihat jadwal booking.");
+                return;
+            }
+
             const memberId = document.getElementById('bookingMemberSelect')?.value;
             const member = members.find(m => String(m.id) === String(memberId));
             if (!member) {
@@ -1434,9 +1919,9 @@
             }
 
             const rawDate = document.getElementById('bookingDateInput')?.value;
-            const time = document.getElementById('bookingTimeInput')?.value;
-            const notes = document.getElementById('bookingNotesInput')?.value || '';
             const date = isoToDMY(rawDate);
+            const time = document.getElementById('bookingTimeInput')?.value;
+            const notes = document.getElementById('bookingNotesInput')?.value.trim() || '';
 
             const newBooking = {
                 id: Date.now().toString(),
@@ -1446,14 +1931,145 @@
                 date: date,
                 time: time,
                 notes: notes,
-                status: 'booked',
+                status: 'scheduled',
                 createdAt: new Date().toISOString()
             };
 
             await saveBookingToCloud(newBooking);
             closeModal('modalAddBooking');
+            renderBookings();
             showToast(`Booking sesi berhasil dijadwalkan untuk ${member.name} pada ${date} jam ${time}!`);
             checkExpiredBookings();
+        }
+
+        async function saveBookingToCloud(bookingObj) {
+            const idx = bookings.findIndex(b => String(b.id) === String(bookingObj.id));
+            if (idx >= 0) bookings[idx] = bookingObj;
+            else bookings.push(bookingObj);
+            localStorage.setItem('pt_bookings', JSON.stringify(bookings));
+
+            if (db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', String(bookingObj.id)), bookingObj);
+                } catch(e) { console.warn("Error saving booking to cloud:", e); }
+            }
+            renderBookings();
+        }
+
+        async function removeBookingFromCloud(bookingId) {
+            bookings = bookings.filter(b => String(b.id) !== String(bookingId));
+            localStorage.setItem('pt_bookings', JSON.stringify(bookings));
+
+            if (db) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', String(bookingId)));
+                } catch(e) { console.warn("Error removing booking from cloud:", e); }
+            }
+            renderBookings();
+        }
+
+        function renderBookings() {
+            const container = document.getElementById('bookingListContainer');
+            const badgeCount = document.getElementById('bookingCountBadge');
+            if (!container) return;
+
+            const isPT = activeUser && activeUser.role === 'pt';
+            const isHeadCoach = activeUser && activeUser.role === 'head_coach';
+            const isAdmin = activeUser && activeUser.role === 'admin';
+
+            let filtered = bookings.filter(b => {
+                if (b.status !== 'scheduled') return false;
+                if (isPT && b.ptName !== activeUser.name) return false;
+                if (!isPT && selectedPT !== 'Semua PT' && b.ptName !== selectedPT) return false;
+                return true;
+            });
+
+            filtered.sort((a, b) => {
+                const dtA = `${dmyToISO(a.date)} ${a.time}`;
+                const dtB = `${dmyToISO(b.date)} ${b.time}`;
+                return dtA.localeCompare(dtB);
+            });
+
+            if (badgeCount) badgeCount.innerText = `${filtered.length} Scheduled`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-purple-50/50 border border-purple-100 rounded-xl p-4 text-center text-purple-700 text-xs">
+                        Tidak ada jadwal booking sesi yang akan datang.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(b => {
+                const canDelete = isAdmin || (isPT && b.ptName === activeUser.name);
+                html += `
+                    <div class="bg-purple-50/80 border border-purple-200 rounded-xl p-3 flex justify-between items-center text-xs hover:shadow-sm transition">
+                        <div class="space-y-0.5 min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="bg-purple-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-full">${b.date} • ${b.time}</span>
+                                <span class="font-bold text-gray-800 truncate">${b.memberName}</span>
+                            </div>
+                            <div class="text-[11px] text-gray-600 truncate">
+                                PT: <b class="text-purple-900">${b.ptName}</b> ${b.notes ? `• <span class="italic text-gray-500">${b.notes}</span>` : ''}
+                            </div>
+                        </div>
+                        ${canDelete ? `
+                            <button onclick="deleteBooking('${b.id}')" class="text-red-500 hover:text-red-700 hover:bg-red-100 p-1 rounded-lg transition ml-2 flex-shrink-0" title="Batal / Hapus Booking">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function checkExpiredBookings() {
+            if (!bookings || bookings.length === 0) return;
+
+            const now = new Date();
+            const nowISO = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            const expiredList = bookings.filter(b => {
+                if (b.status !== 'scheduled') return false;
+                const bookingISO = `${dmyToISO(b.date)} ${b.time}`;
+                return bookingISO <= nowISO;
+            });
+
+            for (const b of expiredList) {
+                b.status = 'completed';
+                await saveBookingToCloud(b);
+
+                const member = members.find(m => String(m.id) === String(b.memberId));
+                if (member) {
+                    member.sessionsUsed += 1;
+                    member.lastCut = `${b.date} jam ${b.time}`;
+
+                    const autoLog = {
+                        id: Date.now().toString(),
+                        date: b.date,
+                        time: b.time,
+                        ptName: b.ptName,
+                        memberName: member.name,
+                        amountCut: 1,
+                        sisaSesi: Math.max(0, member.totalSessions - member.sessionsUsed),
+                        notes: `[Auto-Cut Booking] ${b.notes || ''}`.trim(),
+                        action: 'create'
+                    };
+
+                    await saveMemberToCloud(member);
+                    await saveLogToCloud(autoLog);
+                }
+            }
+
+            if (expiredList.length > 0) {
+                renderMembers();
+                renderLogs();
+                renderBookings();
+            }
         }
 
         async function deleteBooking(bookingId) {
@@ -1468,9 +2084,119 @@
                 return;
             }
 
-            if (confirm(`Apakah Anda yakin ingin membatalkan booking ${booking.memberName} pada ${isoToDMY(booking.date)} jam ${booking.time}?`)) {
+            if (confirm(`Apakah Anda yakin ingin membatalkan booking ${booking.memberName} pada ${booking.date} jam ${booking.time}?`)) {
                 await removeBookingFromCloud(bookingId);
                 showToast(`Booking untuk ${booking.memberName} berhasil dibatalkan.`);
+            }
+        }
+
+        // ==================== REALTIME CLOUD LISTENERS ====================
+        function subscribeCloudData() {
+            if (!db) return;
+
+            const statusTextEl = document.getElementById('cloudStatusText');
+            if (statusTextEl) statusTextEl.innerText = "Cloud Online";
+
+            // Listen Members Collection
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'members'), (snapshot) => {
+                const cloudMembers = [];
+                snapshot.forEach(doc => cloudMembers.push(doc.data()));
+                if (cloudMembers.length > 0 || isFirstMembersSnapshot) {
+                    members = cloudMembers.length > 0 ? cloudMembers : defaultMembers;
+                    localStorage.setItem('pt_members', JSON.stringify(members));
+                    renderMembers();
+                    renderPTTabs();
+                    isFirstMembersSnapshot = false;
+                }
+            }, (err) => console.warn("Members listen error:", err));
+
+            // Listen Logs Collection
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'logs'), (snapshot) => {
+                const cloudLogs = [];
+                snapshot.forEach(doc => cloudLogs.push(doc.data()));
+                if (cloudLogs.length > 0 || isFirstLogsSnapshot) {
+                    logs = cloudLogs.length > 0 ? cloudLogs : defaultLogs;
+                    localStorage.setItem('pt_logs', JSON.stringify(logs));
+                    renderLogs();
+                    isFirstLogsSnapshot = false;
+                }
+            }, (err) => console.warn("Logs listen error:", err));
+
+            // Listen PT Config Collection
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    if (data && Array.isArray(data.list) && data.list.length > 0) {
+                        ptList = data.list;
+                        localStorage.setItem('pt_list', JSON.stringify(ptList));
+                        renderPTTabs();
+                        updateLoginUserSelect();
+                    }
+                }
+            }, (err) => console.warn("PT config listen error:", err));
+
+            // Listen Approvals Collection
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'approvals'), (snapshot) => {
+                const cloudApprovals = [];
+                snapshot.forEach(doc => cloudApprovals.push(doc.data()));
+                approvals = cloudApprovals;
+                localStorage.setItem('pt_approvals', JSON.stringify(approvals));
+                updateApprovalBadge();
+                renderApprovals();
+                renderMembers();
+            }, (err) => console.warn("Approvals listen error:", err));
+
+            // Listen Bookings Collection
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), (snapshot) => {
+                const cloudBookings = [];
+                snapshot.forEach(doc => cloudBookings.push(doc.data()));
+                bookings = cloudBookings;
+                localStorage.setItem('pt_bookings', JSON.stringify(bookings));
+                renderBookings();
+                checkExpiredBookings();
+            }, (err) => console.warn("Bookings listen error:", err));
+
+            // Listen Pins Collection
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pins'), (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    if (data && data.pins) {
+                        userPins = data.pins;
+                        localStorage.setItem('user_pins', JSON.stringify(userPins));
+                    }
+                }
+            }, (err) => console.warn("Pins listen error:", err));
+        }
+
+        function loadLocalStorageData() {
+            try {
+                const savedMembers = localStorage.getItem('pt_members');
+                if (savedMembers) members = JSON.parse(savedMembers);
+                else members = [...defaultMembers];
+
+                const savedLogs = localStorage.getItem('pt_logs');
+                if (savedLogs) logs = JSON.parse(savedLogs);
+                else logs = [...defaultLogs];
+
+                const savedPTs = localStorage.getItem('pt_list');
+                if (savedPTs) ptList = JSON.parse(savedPTs);
+
+                const savedApprovals = localStorage.getItem('pt_approvals');
+                if (savedApprovals) approvals = JSON.parse(savedApprovals);
+
+                const savedBookings = localStorage.getItem('pt_bookings');
+                if (savedBookings) bookings = JSON.parse(savedBookings);
+
+                const savedPins = localStorage.getItem('user_pins');
+                if (savedPins) userPins = JSON.parse(savedPins);
+
+                renderPTTabs();
+                renderMembers();
+                renderLogs();
+                renderBookings();
+                updateApprovalBadge();
+            } catch(e) {
+                console.warn("Error loading local storage:", e);
             }
         }
 
@@ -1535,7 +2261,153 @@
             showToast(`PIN untuk ${activeUser.name} berhasil diperbarui!`);
         }
 
-        // ==================== MISSING UI & DATA HANDLERS ====================
+        // ==================== PT MANAGEMENT & PIN RESET FUNCTIONS ====================
+        const selectPT = selectPTTab;
+
+        async function resetUserPin(userName) {
+            if (!activeUser || activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa reset PIN.");
+                return;
+            }
+            const newPin = prompt(`Masukkan PIN baru untuk ${userName}:`, '1234');
+            if (newPin !== null) {
+                const trimmed = newPin.trim();
+                if (!trimmed) {
+                    showToast("PIN tidak boleh kosong.");
+                    return;
+                }
+                userPins[userName] = trimmed;
+                await saveUserPinsToCloud(userPins);
+                renderPTManageList();
+                showToast(`PIN ${userName} berhasil direset menjadi: ${trimmed}`);
+            }
+        }
+
+        async function addPT() {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const input = document.getElementById('newPTName');
+            const val = input ? input.value.trim() : '';
+            if (!val) {
+                showToast("Nama PT tidak boleh kosong.");
+                return;
+            }
+            if (ptList.includes(val)) {
+                showToast("Nama PT tersebut sudah ada.");
+                return;
+            }
+            ptList.push(val);
+            if (!userPins[val]) userPins[val] = '1234';
+            await savePTsToCloud(ptList);
+            await saveUserPinsToCloud(userPins);
+            if (input) input.value = '';
+            renderPTManageList();
+            renderPTTabs();
+            updateLoginUserSelect();
+            showToast(`PT ${val} berhasil ditambahkan!`);
+        }
+
+        function startEditPT(index) {
+            editingPTIndex = index;
+            renderPTManageList();
+        }
+
+        function cancelEditPT() {
+            editingPTIndex = null;
+            renderPTManageList();
+        }
+
+        async function saveEditPT(index) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const input = document.getElementById('editPTNameInput');
+            const newVal = input ? input.value.trim() : '';
+            if (!newVal) {
+                showToast("Nama PT tidak boleh kosong.");
+                return;
+            }
+            const oldVal = ptList[index];
+            if (oldVal !== newVal && ptList.includes(newVal)) {
+                showToast("Nama PT tersebut sudah ada.");
+                return;
+            }
+            ptList[index] = newVal;
+            if (userPins[oldVal]) {
+                userPins[newVal] = userPins[oldVal];
+                delete userPins[oldVal];
+                await saveUserPinsToCloud(userPins);
+            }
+            members.forEach(async (m) => {
+                if (m.ptName === oldVal) {
+                    m.ptName = newVal;
+                    await saveMemberToCloud(m);
+                }
+            });
+            editingPTIndex = null;
+            await savePTsToCloud(ptList);
+            renderPTManageList();
+            renderPTTabs();
+            renderMembers();
+            updateLoginUserSelect();
+            showToast(`Nama PT berhasil diubah ke ${newVal}!`);
+        }
+
+        async function deletePT(index) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const target = ptList[index];
+            if (confirm(`Apakah Anda yakin ingin menghapus PT "${target}"?`)) {
+                ptList.splice(index, 1);
+                await savePTsToCloud(ptList);
+                renderPTManageList();
+                renderPTTabs();
+                renderMembers();
+                updateLoginUserSelect();
+                showToast(`PT ${target} berhasil dihapus.`);
+            }
+        }
+
+        function exportToExcel() {
+            if (!activeUser || activeUser.role === 'pt') {
+                showToast("Akses Ditolak: Hanya Admin / Head Coach yang dapat mengunduh Excel.");
+                return;
+            }
+            if (typeof XLSX === 'undefined') {
+                showToast("Library SheetJS (XLSX) belum dimuat.");
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+
+            const memberData = members.map((m, idx) => ({
+                "No": idx + 1,
+                "Nama Member": m.name,
+                "Nomor WA": m.phone || '-',
+                "Nama PT": m.ptName,
+                "Total Paket Sesi": m.totalSessions,
+                "Sesi Terpakai": m.sessionsUsed,
+                "Sisa Sesi": Math.max(0, m.totalSessions - m.sessionsUsed),
+                "Terakhir Cut": m.lastCut || '-'
+            }));
+            const wsMembers = XLSX.utils.json_to_sheet(memberData);
+            XLSX.utils.book_append_sheet(wb, wsMembers, "Daftar Member");
+
+            const logData = logs.map((l, idx) => ({
+                "No": idx + 1,
+                "Tanggal": l.date,
+                "Jam": l.time,
+                "Nama PT": l.ptName,
+                "Nama Member": l.memberName,
+                "Sesi Dipotong": l.amountCut,
+                "Sisa Sesi Akhir": l.sisaSesi,
+                "Catatan": l.notes || '-'
+            }));
+            const wsLogs = XLSX.utils.json_to_sheet(logData);
+            XLSX.utils.book_append_sheet(wb, wsLogs, "Riwayat Cutting");
+
+            const filename = `Laporan_Gym_Cutting_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            showToast("Laporan Excel berhasil diunduh!");
+        }
+
+        // ==================== UI & DATA UTILITIES ====================
         function openModal(id) {
             const el = document.getElementById(id);
             if (el) el.classList.remove('hidden');
@@ -1649,6 +2521,51 @@
             renderApprovals();
         }
 
+        function openGoogleSheetsModal() {
+            const urlInput = document.getElementById('googleSheetsUrlInput');
+            const statusEl = document.getElementById('googleSheetsStatus');
+            const savedUrl = localStorage.getItem('google_sheets_url') || HARDCODED_GOOGLE_SHEETS_URL;
+            if (urlInput) urlInput.value = savedUrl;
+            if (statusEl) statusEl.innerText = savedUrl ? "URL terhubung aktif." : "Belum diatur.";
+            openModal('modalGoogleSheets');
+        }
+
+        function handleSaveGoogleSheetsUrl(e) {
+            e.preventDefault();
+            const url = document.getElementById('googleSheetsUrlInput')?.value.trim();
+            if (url) {
+                localStorage.setItem('google_sheets_url', url);
+                showToast("URL Google Sheets berhasil disimpan!");
+                closeModal('modalGoogleSheets');
+            }
+        }
+
+        function openFirebaseModal() {
+            const configInput = document.getElementById('firebaseConfigInput');
+            const connStatus = document.getElementById('firebaseConnectionStatus');
+            const savedConfig = localStorage.getItem('firebase_custom_config') || JSON.stringify(HARDCODED_FIREBASE_CONFIG, null, 2);
+            if (configInput) configInput.value = savedConfig;
+            if (connStatus) connStatus.innerText = db ? "Terhubung ke Firebase Cloud." : "Menggunakan konfigurasi lokal/default.";
+            openModal('modalFirebase');
+        }
+
+        function handleSaveFirebaseConfig(e) {
+            e.preventDefault();
+            const jsonText = document.getElementById('firebaseConfigInput')?.value.trim();
+            try {
+                const parsed = JSON.parse(jsonText);
+                if (!parsed.projectId || !parsed.apiKey) {
+                    throw new Error("Format konfigurasi tidak valid (memerlukan projectId & apiKey).");
+                }
+                localStorage.setItem('firebase_custom_config', JSON.stringify(parsed));
+                showToast("Konfigurasi Firebase disimpan! Memuat ulang...");
+                closeModal('modalFirebase');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch(err) {
+                showToast("Error: " + err.message);
+            }
+        }
+
         async function syncToGoogleSheets(logObj) {
             const url = HARDCODED_GOOGLE_SHEETS_URL || localStorage.getItem('google_sheets_url');
             if (!url) return;
@@ -1662,921 +2579,6 @@
             } catch(e) {
                 console.warn("Google Sheets sync error:", e);
             }
-        }
-
-        function updateApprovalBadge() {
-            const badgeCount = document.getElementById('approvalBadgeCount');
-            const pendingCount = approvals.filter(a => a.status === 'pending').length;
-            if (badgeCount) badgeCount.innerText = pendingCount;
-        }
-
-        function openApprovalsModal() {
-            if (!activeUser || activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang bisa melihat persetujuan.");
-                return;
-            }
-            renderApprovals();
-            openModal('modalApprovals');
-        }
-
-        function renderApprovals() {
-            const container = document.getElementById('approvalsListContainer');
-            if (!container) return;
-
-            const pendingList = approvals.filter(a => a.status === 'pending');
-            if (pendingList.length === 0) {
-                container.innerHTML = `
-                    <div class="p-6 text-center text-gray-400 text-xs italic">
-                        Tidak ada pengajuan persetujuan yang tertunda.
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '';
-            pendingList.forEach(req => {
-                if (req.type === 'cut_session') {
-                    html += `
-                        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5 space-y-2 text-xs">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <span class="bg-amber-200 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded">CUT SESI</span>
-                                    <span class="font-bold text-gray-800 ml-2">${req.memberName}</span>
-                                </div>
-                                <span class="text-[10px] text-gray-400">${isoToDMY(req.date)} ${req.time}</span>
-                            </div>
-                            <div class="text-gray-600">
-                                Diajukan oleh PT: <b class="text-gray-800">${req.ptName}</b> • Potong <b>${req.amountCut} Sesi</b>
-                                ${req.notes ? `<div class="italic text-gray-500 mt-0.5">Catatan: "${req.notes}"</div>` : ''}
-                            </div>
-                            <div class="flex gap-2 justify-end pt-1">
-                                <button onclick="rejectRequest('${req.id}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-lg font-semibold text-xs">✕ Tolak</button>
-                                <button onclick="approveRequest('${req.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold text-xs">✓ Izinkan / Setujui</button>
-                            </div>
-                        </div>
-                    `;
-                } else if (req.type === 'add_member') {
-                    const m = req.memberData;
-                    html += `
-                        <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 space-y-2 text-xs">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <span class="bg-blue-200 text-blue-900 text-[10px] font-bold px-2 py-0.5 rounded">MEMBER BARU</span>
-                                    <span class="font-bold text-gray-800 ml-2">${m.name}</span>
-                                </div>
-                                <span class="text-[10px] text-gray-400">Pengajuan Baru</span>
-                            </div>
-                            <div class="text-gray-600">
-                                Diajukan oleh PT: <b class="text-gray-800">${req.ptName}</b> • Paket: <b>${m.totalSessions} Sesi</b> (Terpakai awal: ${m.sessionsUsed})
-                                ${m.phone ? `<div class="text-gray-500">WA: ${m.phone}</div>` : ''}
-                            </div>
-                            <div class="flex gap-2 justify-end pt-1">
-                                <button onclick="rejectRequest('${req.id}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-lg font-semibold text-xs">✕ Tolak</button>
-                                <button onclick="approveRequest('${req.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold text-xs">✓ Izinkan / Setujui</button>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            container.innerHTML = html;
-        }
-
-        async function approveRequest(reqId) {
-            const req = approvals.find(a => String(a.id) === String(reqId));
-            if (!req) return;
-
-            if (req.type === 'cut_session') {
-                const member = members.find(m => String(m.id) === String(req.memberId));
-                if (member) {
-                    member.sessionsUsed += Number(req.amountCut);
-                    member.lastCut = `${req.date} jam ${req.time}`;
-
-                    const newLog = {
-                        id: Date.now().toString(),
-                        date: req.date,
-                        time: req.time,
-                        ptName: req.ptName,
-                        memberName: member.name,
-                        amountCut: Number(req.amountCut),
-                        sisaSesi: Math.max(0, member.totalSessions - member.sessionsUsed),
-                        notes: req.notes || 'Cut Sesi (Disetujui)',
-                        action: 'create'
-                    };
-
-                    await saveMemberToCloud(member);
-                    await saveLogToCloud(newLog);
-                }
-            } else if (req.type === 'add_member') {
-                await saveMemberToCloud(req.memberData);
-            }
-
-            await removeApprovalFromCloud(reqId);
-            renderMembers();
-            renderLogs();
-            showToast("Pengajuan berhasil disetujui!");
-        }
-
-        async function rejectRequest(reqId) {
-            await removeApprovalFromCloud(reqId);
-            renderMembers();
-            showToast("Pengajuan telah ditolak.");
-        }
-
-        function selectPT(ptName) {
-            if (activeUser && activeUser.role === 'pt' && ptName !== activeUser.name) {
-                showToast(`Anda sedang di akun ${activeUser.name}. Hanya bisa melihat data milik Anda.`);
-                return;
-            }
-            selectedPT = ptName;
-            renderPTTabs();
-            renderMembers();
-            renderLogs();
-            renderBookings();
-        }
-
-        function renderPTTabs() {
-            const container = document.getElementById('ptTabsContainer');
-            const titleEl = document.getElementById('activePTTitle');
-            if (!container) return;
-
-            if (titleEl) titleEl.innerText = selectedPT;
-
-            const isPT = activeUser && activeUser.role === 'pt';
-
-            let html = '';
-            if (!isPT) {
-                const totalClientsAll = members.length;
-                const isAllActive = selectedPT === 'Semua PT';
-                html += `
-                    <button onclick="selectPT('Semua PT')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${isAllActive ? 'bg-gymRed text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                        <span>Semua PT</span>
-                        <span class="${isAllActive ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'} text-[10px] px-1.5 py-0.5 rounded-full font-bold">${totalClientsAll}</span>
-                    </button>
-                `;
-            }
-
-            ptList.forEach(pt => {
-                if (isPT && pt !== activeUser.name) return;
-
-                const count = members.filter(m => m.ptName === pt).length;
-                const isActive = selectedPT === pt;
-                html += `
-                    <button onclick="selectPT('${pt}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${isActive ? 'bg-gymRed text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                        <span>${pt}</span>
-                        <span class="${isActive ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'} text-[10px] px-1.5 py-0.5 rounded-full font-bold">${count}</span>
-                    </button>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function renderMembers() {
-            const container = document.getElementById('memberListContainer');
-            const searchInput = document.getElementById('searchInput');
-            if (!container) return;
-
-            const query = (searchInput?.value || '').toLowerCase().trim();
-            const isPT = activeUser && activeUser.role === 'pt';
-            const isHeadCoach = activeUser && activeUser.role === 'head_coach';
-            const isAdmin = activeUser && activeUser.role === 'admin';
-
-            let filtered = members.filter(m => {
-                const memberPT = (m.ptName || '').trim();
-                const activePTName = (activeUser && activeUser.name || '').trim();
-                const selPT = (selectedPT || '').trim();
-
-                if (isPT && memberPT !== activePTName) return false;
-                if (!isPT && selPT !== 'Semua PT' && memberPT !== selPT) return false;
-                if (query && !m.name.toLowerCase().includes(query) && !memberPT.toLowerCase().includes(query)) return false;
-                return true;
-            });
-
-            filtered.sort((a, b) => a.name.localeCompare(b.name));
-
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full bg-white p-8 rounded-2xl text-center text-gray-400 text-xs border border-gray-100">
-                        Tidak ada data member yang sesuai.
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '';
-            filtered.forEach(m => {
-                const total = Number(m.totalSessions) || 0;
-                const used = Number(m.sessionsUsed) || 0;
-                const sisa = Math.max(0, total - used);
-                const percent = Math.min(100, Math.round((used / (total || 1)) * 100));
-
-                let statusBg = 'bg-emerald-100 text-emerald-800';
-                let statusText = 'AKTIF';
-                let barColor = 'bg-emerald-500';
-                let sisaColor = 'text-emerald-600';
-
-                if (sisa === 0) {
-                    statusBg = 'bg-red-100 text-red-800';
-                    statusText = 'HABIS';
-                    barColor = 'bg-red-500';
-                    sisaColor = 'text-red-600';
-                } else if (sisa === 1) {
-                    statusBg = 'bg-orange-100 text-orange-800';
-                    statusText = 'SISA 1 SESI';
-                    barColor = 'bg-orange-500';
-                    sisaColor = 'text-orange-600';
-                } else if (sisa <= 3) {
-                    statusBg = 'bg-amber-100 text-amber-800';
-                    statusText = 'MENDEKATI HABIS';
-                    barColor = 'bg-amber-500';
-                    sisaColor = 'text-amber-600';
-                }
-
-                const initial = m.name ? m.name.charAt(0).toUpperCase() : '?';
-                const hasPendingApproval = approvals.some(a => a.status === 'pending' && a.memberId === m.id);
-
-                html += `
-                    <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex flex-col justify-between gap-2.5 hover:shadow-md transition">
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-red-50 text-gymRed font-bold flex items-center justify-center text-xs flex-shrink-0">
-                                    ${initial}
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-1.5">
-                                        <h3 class="font-bold text-xs text-gymDark truncate">${m.name}</h3>
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full ${statusBg}">${statusText}</span>
-                                    </div>
-                                    <div class="text-[10px] text-gray-400 truncate mt-0.5">
-                                        PT: <b class="text-gray-600">${m.ptName}</b> ${m.lastCut ? `• ${m.lastCut}` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-1 flex-shrink-0">
-                                ${m.phone ? `
-                                    <a href="${formatWAUrl(m.phone)}" target="_blank" class="p-1 text-emerald-600 hover:bg-emerald-50 rounded-lg transition" title="Chat WhatsApp">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                                    </a>
-                                ` : ''}
-                                <button onclick="openMemberLogsModal('${m.id}')" class="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition" title="Riwayat Cutting Member">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </button>
-                                ${isAdmin ? `
-                                    <button onclick="openEditMemberModal('${m.id}')" class="p-1 text-gray-400 hover:text-blue-600 rounded-lg transition" title="Edit Member">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    </button>
-                                    <button onclick="confirmDelete('member', '${m.id}')" class="p-1 text-gray-400 hover:text-red-600 rounded-lg transition" title="Hapus Member">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </div>
-
-                        <!-- Progress Bar Sesi -->
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-[11px] font-semibold">
-                                <span class="text-gray-500">Terpakai: <b>${used}/${total}</b></span>
-                                <span class="${sisaColor}">Sisa: ${sisa} Sesi</span>
-                            </div>
-                            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                                <div class="${barColor} h-full transition-all duration-300" style="width: ${percent}%"></div>
-                            </div>
-                        </div>
-
-                        <!-- Action Button Cut Sesi -->
-                        <div>
-                            ${hasPendingApproval ? `
-                                <button disabled class="w-full bg-amber-100 text-amber-800 text-xs font-bold py-1.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-1">
-                                    ⌛ Menunggu Persetujuan Admin
-                                </button>
-                            ` : sisa > 0 && !isHeadCoach ? `
-                                <button onclick="openCutCustomModal('${m.id}')" class="w-full bg-gymRed hover:bg-gymRedHover text-white text-xs font-semibold py-1.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1">
-                                    📅 Cut Sesi
-                                </button>
-                            ` : `
-                                <button disabled class="w-full bg-gray-100 text-gray-400 text-xs font-semibold py-1.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-1">
-                                    🚫 ${sisa === 0 ? 'Sesi Habis' : 'View Only'}
-                                </button>
-                            `}
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function openAddMemberModal() {
-            if (!activeUser || (activeUser.role !== 'admin')) {
-                showToast("Akses Ditolak: Hanya Admin yang bisa menambah member.");
-                return;
-            }
-
-            const selectPT = document.getElementById('memberPT');
-            if (selectPT) {
-                selectPT.innerHTML = ptList.map(pt => `<option value="${pt}">${pt}</option>`).join('');
-            }
-
-            document.getElementById('memberName').value = '';
-            document.getElementById('memberPhone').value = '';
-            document.getElementById('memberTotalSessions').value = 10;
-            document.getElementById('memberUsedSessions').value = 0;
-
-            openModal('modalAddMember');
-        }
-
-        async function handleAddMember(e) {
-            e.preventDefault();
-            if (!activeUser || activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang dapat menambah member.");
-                return;
-            }
-
-            const name = document.getElementById('memberName')?.value.trim();
-            const phone = document.getElementById('memberPhone')?.value.trim();
-            const ptName = document.getElementById('memberPT')?.value;
-            const totalSessions = Number(document.getElementById('memberTotalSessions')?.value) || 1;
-            const sessionsUsed = Number(document.getElementById('memberUsedSessions')?.value) || 0;
-
-            if (!name || !ptName) {
-                showToast("Mohon lengkapi nama member dan PT.");
-                return;
-            }
-
-            const newMember = {
-                id: Date.now().toString(),
-                name,
-                phone,
-                ptName,
-                totalSessions,
-                sessionsUsed,
-                lastCut: '-'
-            };
-
-            await saveMemberToCloud(newMember);
-            closeModal('modalAddMember');
-            renderMembers();
-            showToast(`Member ${name} berhasil ditambahkan!`);
-        }
-
-        function openEditMemberModal(id) {
-            if (!activeUser || activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang bisa mengedit member.");
-                return;
-            }
-
-            const member = members.find(m => String(m.id) === String(id));
-            if (!member) return;
-
-            document.getElementById('editMemberId').value = member.id;
-            document.getElementById('editMemberName').value = member.name || '';
-            document.getElementById('editMemberPhone').value = member.phone || '';
-
-            const selectPT = document.getElementById('editMemberPT');
-            if (selectPT) {
-                selectPT.innerHTML = ptList.map(pt => `<option value="${pt}" ${pt === member.ptName ? 'selected' : ''}>${pt}</option>`).join('');
-            }
-
-            document.getElementById('editMemberTotalSessions').value = member.totalSessions || 10;
-            document.getElementById('editMemberUsedSessions').value = member.sessionsUsed || 0;
-
-            openModal('modalEditMember');
-        }
-
-        async function handleEditMember(e) {
-            e.preventDefault();
-            if (!activeUser || activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang dapat mengedit member.");
-                return;
-            }
-
-            const id = document.getElementById('editMemberId')?.value;
-            const member = members.find(m => String(m.id) === String(id));
-            if (!member) return;
-
-            member.name = document.getElementById('editMemberName')?.value.trim();
-            member.phone = document.getElementById('editMemberPhone')?.value.trim();
-            member.ptName = document.getElementById('editMemberPT')?.value;
-            member.totalSessions = Number(document.getElementById('editMemberTotalSessions')?.value) || 1;
-            member.sessionsUsed = Number(document.getElementById('editMemberUsedSessions')?.value) || 0;
-
-            await saveMemberToCloud(member);
-            closeModal('modalEditMember');
-            renderMembers();
-            showToast(`Data ${member.name} berhasil diperbarui!`);
-        }
-
-        function openCutCustomModal(memberId) {
-            if (!activeUser) {
-                showToast("Silakan login terlebih dahulu.");
-                return;
-            }
-
-            const member = members.find(m => String(m.id) === String(memberId));
-            if (!member) return;
-
-            document.getElementById('cutMemberId').value = member.id;
-            const now = new Date();
-            document.getElementById('cutDate').value = now.toISOString().split('T')[0];
-            document.getElementById('cutTime').value = now.toTimeString().slice(0, 5);
-            document.getElementById('cutAmount').value = 1;
-            document.getElementById('cutNotes').value = '';
-
-            openModal('modalCutCustom');
-        }
-
-        async function handleCutCustom(e) {
-            e.preventDefault();
-            const id = document.getElementById('cutMemberId')?.value;
-            const member = members.find(m => String(m.id) === String(id));
-            if (!member) return;
-
-            const rawDate = document.getElementById('cutDate')?.value;
-            const time = document.getElementById('cutTime')?.value;
-            const amountCut = Number(document.getElementById('cutAmount')?.value) || 1;
-            const notes = document.getElementById('cutNotes')?.value || '';
-
-            const dateFormatted = isoToDMY(rawDate);
-
-            if (activeUser && activeUser.role === 'pt') {
-                const newReq = {
-                    id: Date.now().toString(),
-                    type: 'cut_session',
-                    status: 'pending',
-                    ptName: activeUser.name,
-                    memberId: member.id,
-                    memberName: member.name,
-                    amountCut: amountCut,
-                    date: dateFormatted,
-                    time: time,
-                    notes: notes,
-                    createdAt: new Date().toISOString()
-                };
-
-                await saveApprovalToCloud(newReq);
-                closeModal('modalCutCustom');
-                renderMembers();
-                showToast("Pengajuan cut sesi berhasil dikirim ke Admin untuk disetujui!");
-                return;
-            }
-
-            member.sessionsUsed += amountCut;
-            member.lastCut = `${dateFormatted} jam ${time}`;
-
-            const newLog = {
-                id: Date.now().toString(),
-                date: dateFormatted,
-                time: time,
-                ptName: member.ptName,
-                memberName: member.name,
-                amountCut: amountCut,
-                sisaSesi: Math.max(0, member.totalSessions - member.sessionsUsed),
-                notes: notes || 'Cut Sesi',
-                action: 'create'
-            };
-
-            await saveMemberToCloud(member);
-            await saveLogToCloud(newLog);
-
-            closeModal('modalCutCustom');
-            renderMembers();
-            renderLogs();
-            showToast(`Berhasil memotong ${amountCut} sesi dari ${member.name}`);
-        }
-
-        function renderLogs() {
-            const tableBody = document.getElementById('logTableBody');
-            const titleEl = document.getElementById('logSectionTitle');
-            const statsBadge = document.getElementById('logStatsBadge');
-
-            if (!tableBody) return;
-
-            if (titleEl) titleEl.innerText = `Riwayat Cutting Sesi (${selectedPT})`;
-
-            const isPT = activeUser && activeUser.role === 'pt';
-            const isAdmin = activeUser && activeUser.role === 'admin';
-
-            const dateFrom = document.getElementById('dateFromInput')?.value;
-            const dateTo = document.getElementById('dateToInput')?.value;
-
-            let filtered = logs.filter(l => {
-                if (isPT && l.ptName !== activeUser.name) return false;
-                if (!isPT && selectedPT !== 'Semua PT' && l.ptName !== selectedPT) return false;
-
-                if (dateFrom || dateTo) {
-                    const logISO = dmyToISO(l.date);
-                    if (dateFrom && logISO < dateFrom) return false;
-                    if (dateTo && logISO > dateTo) return false;
-                }
-
-                return true;
-            });
-
-            filtered.sort((a, b) => {
-                const dtA = `${dmyToISO(a.date)} ${a.time}`;
-                const dtB = `${dmyToISO(b.date)} ${b.time}`;
-                return dateSortAsc ? dtA.localeCompare(dtB) : dtB.localeCompare(dtA);
-            });
-
-            if (statsBadge) {
-                statsBadge.innerHTML = `<span>Total Sesi Dipotong: <b>${filtered.reduce((sum, item) => sum + (Number(item.amountCut) || 0), 0)}</b></span>`;
-            }
-
-            if (filtered.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="text-center py-8 text-gray-400 italic text-xs">
-                            Belum ada riwayat cutting sesi.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            let html = '';
-            filtered.forEach(l => {
-                html += `
-                    <tr class="hover:bg-gray-50/70 transition">
-                        <td class="py-3 px-4 font-semibold text-gray-800">${l.date}</td>
-                        <td class="py-3 px-4 text-gray-600">${l.time}</td>
-                        <td class="py-3 px-4"><span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-semibold text-[11px]">${l.ptName}</span></td>
-                        <td class="py-3 px-4 font-bold text-gymDark">${l.memberName}</td>
-                        <td class="py-3 px-4 font-bold text-gymRed">-${l.amountCut} Sesi</td>
-                        <td class="py-3 px-4 font-semibold text-emerald-600">${l.sisaSesi} Sesi</td>
-                        <td class="py-3 px-4 text-gray-500 italic">${l.notes || '-'}</td>
-                        <td class="py-3 px-4 text-right">
-                            ${isAdmin ? `
-                                <div class="flex justify-end gap-1">
-                                    <button onclick="openEditLogModal('${l.id}')" class="p-1 text-gray-400 hover:text-blue-600 rounded transition" title="Edit Log">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    </button>
-                                    <button onclick="confirmDelete('log', '${l.id}')" class="p-1 text-gray-400 hover:text-red-600 rounded transition" title="Hapus Log">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            ` : '<span class="text-[10px] text-gray-400">-</span>'}
-                        </td>
-                    </tr>
-                `;
-            });
-
-            tableBody.innerHTML = html;
-        }
-
-        function openEditLogModal(logId) {
-            if (!activeUser || activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang bisa mengedit log.");
-                return;
-            }
-
-            const log = logs.find(l => String(l.id) === String(logId));
-            if (!log) return;
-
-            document.getElementById('editLogId').value = log.id;
-            document.getElementById('editLogDate').value = dmyToISO(log.date);
-            document.getElementById('editLogTime').value = log.time || '12:00';
-            document.getElementById('editLogNotes').value = log.notes || '';
-
-            openModal('modalEditLog');
-        }
-
-        async function handleEditLog(e) {
-            e.preventDefault();
-            if (!activeUser || activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang dapat mengedit log.");
-                return;
-            }
-
-            const id = document.getElementById('editLogId')?.value;
-            const log = logs.find(l => String(l.id) === String(id));
-            if (!log) return;
-
-            const rawDate = document.getElementById('editLogDate')?.value;
-            log.date = isoToDMY(rawDate);
-            log.time = document.getElementById('editLogTime')?.value;
-            log.notes = document.getElementById('editLogNotes')?.value || '';
-
-            await saveLogToCloud(log);
-            closeModal('modalEditLog');
-            renderLogs();
-            showToast("Log riwayat berhasil diperbarui!");
-        }
-
-        function openMemberLogsModal(memberId) {
-            const member = members.find(m => String(m.id) === String(memberId));
-            if (!member) return;
-
-            const titleEl = document.getElementById('memberLogsTitle');
-            const statsEl = document.getElementById('memberLogsStats');
-            const tableBody = document.getElementById('memberLogsTableBody');
-
-            if (titleEl) titleEl.innerText = `Riwayat Cutting: ${member.name}`;
-            if (statsEl) statsEl.innerText = `PT: ${member.ptName} • Total Paket: ${member.totalSessions} • Terpakai: ${member.sessionsUsed}`;
-
-            const memberLogs = logs.filter(l => l.memberName === member.name);
-            memberLogs.sort((a, b) => {
-                const dtA = `${dmyToISO(a.date)} ${a.time}`;
-                const dtB = `${dmyToISO(b.date)} ${b.time}`;
-                return dtB.localeCompare(dtA);
-            });
-
-            if (tableBody) {
-                if (memberLogs.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 italic">Belum ada riwayat pemotongan sesi untuk member ini.</td></tr>`;
-                } else {
-                    tableBody.innerHTML = memberLogs.map(l => `
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-2.5 px-3 font-semibold text-gray-800">${l.date}</td>
-                            <td class="py-2.5 px-3 text-gray-600">${l.time}</td>
-                            <td class="py-2.5 px-3 text-gray-700">${l.ptName}</td>
-                            <td class="py-2.5 px-3 font-bold text-gymRed">-${l.amountCut} Sesi</td>
-                            <td class="py-2.5 px-3 font-semibold text-emerald-600">${l.sisaSesi} Sesi</td>
-                            <td class="py-2.5 px-3 text-gray-500 italic">${l.notes || '-'}</td>
-                        </tr>
-                    `).join('');
-                }
-            }
-
-            openModal('modalMemberLogs');
-        }
-
-        function resetDateFilter() {
-            const f = document.getElementById('dateFromInput');
-            const t = document.getElementById('dateToInput');
-            if (f) f.value = '';
-            if (t) t.value = '';
-            renderLogs();
-        }
-
-        function toggleDateSort() {
-            dateSortAsc = !dateSortAsc;
-            const arrow = document.getElementById('thDateArrow');
-            if (arrow) arrow.innerText = dateSortAsc ? '▼' : '▲';
-            renderLogs();
-        }
-
-        function openManagePTModal() {
-            if (!activeUser || activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang bisa mengelola PT.");
-                return;
-            }
-            renderPTManageList();
-            openModal('modalManagePT');
-        }
-
-        function renderPTManageList() {
-            const container = document.getElementById('ptListContainer');
-            if (!container) return;
-
-            let html = `
-                <div class="bg-gray-100 p-2.5 rounded-xl flex items-center justify-between text-xs mb-2 border border-gray-200">
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-gymRed">🔑 Admin (Utama)</span>
-                        <span class="text-[10px] bg-red-200 text-red-900 px-1.5 py-0.5 rounded font-mono">PIN: ${getUserPin('Admin')}</span>
-                    </div>
-                    <button onclick="resetUserPin('Admin')" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] px-2 py-1 rounded font-semibold transition">
-                        🔑 Reset PIN
-                    </button>
-                </div>
-                <div class="bg-gray-100 p-2.5 rounded-xl flex items-center justify-between text-xs mb-2 border border-gray-200">
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-blue-700">📋 Head Coach</span>
-                        <span class="text-[10px] bg-blue-200 text-blue-900 px-1.5 py-0.5 rounded font-mono">PIN: ${getUserPin('Head Coach')}</span>
-                    </div>
-                    <button onclick="resetUserPin('Head Coach')" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] px-2 py-1 rounded font-semibold transition">
-                        🔑 Reset PIN
-                    </button>
-                </div>
-            `;
-
-            ptList.forEach((pt, index) => {
-                const pin = getUserPin(pt);
-                if (editingPTIndex === index) {
-                    html += `
-                        <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-xl border">
-                            <input type="text" id="editPTNameInput" value="${pt}" class="flex-1 border rounded p-1.5 text-xs font-semibold">
-                            <button onclick="saveEditPT(${index})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded font-semibold">Simpan</button>
-                            <button onclick="cancelEditPT()" class="bg-gray-300 text-gray-700 text-xs px-2.5 py-1.5 rounded font-semibold">Batal</button>
-                        </div>
-                    `;
-                } else {
-                    html += `
-                        <div class="flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border text-xs">
-                            <div>
-                                <span class="font-bold text-gray-800">${pt}</span>
-                                <span class="ml-2 text-[10px] bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded font-mono">PIN: ${pin}</span>
-                            </div>
-                            <div class="flex gap-1.5">
-                                <button onclick="resetUserPin('${pt}')" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] px-2 py-1 rounded font-semibold transition" title="Reset PIN User">
-                                    🔑 Reset PIN
-                                </button>
-                                <button onclick="startEditPT(${index})" class="text-blue-600 hover:text-blue-800 p-1 font-semibold">Edit</button>
-                                <button onclick="deletePT(${index})" class="text-red-600 hover:text-red-800 p-1 font-semibold">Hapus</button>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-
-            container.innerHTML = html;
-        }
-
-        async function addPT() {
-            const input = document.getElementById('newPTName');
-            const val = (input?.value || '').trim();
-            if (!val) {
-                showToast("Nama PT tidak boleh kosong.");
-                return;
-            }
-            if (ptList.includes(val)) {
-                showToast("Nama PT sudah ada.");
-                return;
-            }
-
-            const newList = [...ptList, val];
-            await savePTsToCloud(newList);
-            if (input) input.value = '';
-            renderPTManageList();
-            renderPTTabs();
-            showToast(`PT ${val} berhasil ditambahkan!`);
-        }
-
-        function startEditPT(index) {
-            editingPTIndex = index;
-            renderPTManageList();
-        }
-
-        function cancelEditPT() {
-            editingPTIndex = null;
-            renderPTManageList();
-        }
-
-        async function saveEditPT(index) {
-            const input = document.getElementById('editPTNameInput');
-            const val = (input?.value || '').trim();
-            if (!val) return;
-
-            const oldName = ptList[index];
-            ptList[index] = val;
-
-            members.forEach(m => {
-                if (m.ptName === oldName) m.ptName = val;
-            });
-
-            await savePTsToCloud([...ptList]);
-            localStorage.setItem('pt_members', JSON.stringify(members));
-
-            editingPTIndex = null;
-            renderPTManageList();
-            renderPTTabs();
-            renderMembers();
-            showToast("Nama PT berhasil diperbarui!");
-        }
-
-        async function deletePT(index) {
-            const name = ptList[index];
-            if (confirm(`Apakah Anda yakin ingin menghapus PT ${name}? Data member milik PT ini akan tetap disimpan.`)) {
-                ptList.splice(index, 1);
-                await savePTsToCloud([...ptList]);
-                renderPTManageList();
-                renderPTTabs();
-                showToast(`PT ${name} telah dihapus.`);
-            }
-        }
-
-        async function resetUserPin(userName) {
-            const newPin = prompt(`Masukkan PIN Baru untuk akun "${userName}":`, '1234');
-            if (newPin === null) return;
-            const cleanPin = String(newPin).trim();
-            if (!cleanPin) {
-                showToast("PIN tidak boleh kosong.");
-                return;
-            }
-
-            userPins[userName] = cleanPin;
-            await saveUserPinsToCloud(userPins);
-            renderPTManageList();
-            showToast(`PIN untuk ${userName} berhasil direset menjadi: ${cleanPin}`);
-        }
-
-        function openGoogleSheetsModal() {
-            const input = document.getElementById('googleSheetsUrlInput');
-            const status = document.getElementById('googleSheetsStatus');
-            const saved = localStorage.getItem('google_sheets_url') || HARDCODED_GOOGLE_SHEETS_URL;
-            if (input) input.value = saved;
-            if (status) status.innerText = saved ? "Connected / Configured" : "Not Configured";
-            openModal('modalGoogleSheets');
-        }
-
-        function handleSaveGoogleSheetsUrl(e) {
-            e.preventDefault();
-            const url = document.getElementById('googleSheetsUrlInput')?.value.trim();
-            if (url) localStorage.setItem('google_sheets_url', url);
-            else localStorage.removeItem('google_sheets_url');
-            closeModal('modalGoogleSheets');
-            showToast("URL Google Sheets berhasil disimpan!");
-        }
-
-        function openFirebaseModal() {
-            const input = document.getElementById('firebaseConfigInput');
-            if (input) input.value = JSON.stringify(firebaseConfig, null, 2);
-            openModal('modalFirebase');
-        }
-
-        function handleSaveFirebaseConfig(e) {
-            e.preventDefault();
-            const val = document.getElementById('firebaseConfigInput')?.value.trim();
-            try {
-                const parsed = JSON.parse(val);
-                localStorage.setItem('firebase_custom_config', JSON.stringify(parsed));
-                closeModal('modalFirebase');
-                showToast("Konfigurasi Firebase disimpan. Refresh halaman untuk menerapkan.");
-                setTimeout(() => location.reload(), 1000);
-            } catch(err) {
-                showToast("Format JSON Firebase Config tidak valid.");
-            }
-        }
-
-        function confirmDelete(type, id) {
-            if (!activeUser || activeUser.role !== 'admin') {
-                showToast("Akses Ditolak: Hanya Admin yang bisa menghapus data.");
-                return;
-            }
-
-            pendingDeleteType = type;
-            pendingDeleteId = id;
-
-            const titleEl = document.getElementById('confirmTitle');
-            const msgEl = document.getElementById('confirmMessage');
-
-            if (type === 'member') {
-                const m = members.find(mem => String(mem.id) === String(id));
-                if (titleEl) titleEl.innerText = "Hapus Member?";
-                if (msgEl) msgEl.innerText = `Yakin ingin menghapus member ${m ? m.name : ''}? Data riwayat akan tetap aman.`;
-            } else if (type === 'log') {
-                if (titleEl) titleEl.innerText = "Hapus Log Riwayat?";
-                if (msgEl) msgEl.innerText = "Yakin ingin menghapus baris riwayat ini?";
-            }
-
-            openModal('modalConfirm');
-        }
-
-        async function executeConfirmDelete() {
-            if (!pendingDeleteType || !pendingDeleteId) return;
-
-            if (pendingDeleteType === 'member') {
-                await removeMemberFromCloud(pendingDeleteId);
-                renderMembers();
-                showToast("Member berhasil dihapus.");
-            } else if (pendingDeleteType === 'log') {
-                await removeLogFromCloud(pendingDeleteId);
-                renderLogs();
-                showToast("Log riwayat berhasil dihapus.");
-            }
-
-            pendingDeleteType = null;
-            pendingDeleteId = null;
-            closeModal('modalConfirm');
-        }
-
-        function exportToExcel() {
-            if (typeof XLSX === 'undefined') {
-                showToast("Library Export Excel belum dimuat.");
-                return;
-            }
-
-            const wb = XLSX.utils.book_new();
-
-            const memberData = members.map((m, idx) => ({
-                "No": idx + 1,
-                "Nama Member": m.name,
-                "WhatsApp": m.phone || '-',
-                "Personal Trainer": m.ptName,
-                "Total Paket Sesi": m.totalSessions,
-                "Sesi Terpakai": m.sessionsUsed,
-                "Sisa Sesi": Math.max(0, m.totalSessions - m.sessionsUsed),
-                "Last Cut": m.lastCut || '-'
-            }));
-
-            const logData = logs.map((l, idx) => ({
-                "No": idx + 1,
-                "Tanggal": l.date,
-                "Jam": l.time,
-                "Nama PT": l.ptName,
-                "Nama Member": l.memberName,
-                "Jumlah Dipotong": l.amountCut,
-                "Sisa Sesi Akhir": l.sisaSesi,
-                "Catatan": l.notes || '-'
-            }));
-
-            const wsMembers = XLSX.utils.json_to_sheet(memberData);
-            const wsLogs = XLSX.utils.json_to_sheet(logData);
-
-            XLSX.utils.book_append_sheet(wb, wsMembers, "Daftar Member");
-            XLSX.utils.book_append_sheet(wb, wsLogs, "Riwayat Cutting");
-
-            XLSX.writeFile(wb, `Report_Cutting_Sesi_Gym_${new Date().toISOString().split('T')[0]}.xlsx`);
-            showToast("File Excel berhasil diunduh!");
         }
 
         function setupEventListeners() {
@@ -2595,10 +2597,12 @@
         }
 
         window.openAddBookingModal = openAddBookingModal;
+        window.handleAddBooking = handleAddBooking;
         window.deleteBooking = deleteBooking;
         window.renderBookings = renderBookings;
         window.checkExpiredBookings = checkExpiredBookings;
         window.switchLoginMode = switchLoginMode;
+        window.setMemberViewMode = setMemberViewMode;
         window.getUserPin = getUserPin;
         window.openModal = openModal;
         window.closeModal = closeModal;
@@ -2614,8 +2618,13 @@
         window.openMemberLogsModal = openMemberLogsModal;
         window.openChangePinModal = openChangePinModal;
         window.openApprovalsModal = openApprovalsModal;
+        window.approveRequest = approveRequest;
+        window.rejectRequest = rejectRequest;
+        window.updateApprovalBadge = updateApprovalBadge;
         window.openGoogleSheetsModal = openGoogleSheetsModal;
         window.openFirebaseModal = openFirebaseModal;
+        window.handleSaveGoogleSheetsUrl = handleSaveGoogleSheetsUrl;
+        window.handleSaveFirebaseConfig = handleSaveFirebaseConfig;
         window.logoutUser = logoutUser;
         window.resetUserPin = resetUserPin;
         window.handleChangePin = handleChangePin;

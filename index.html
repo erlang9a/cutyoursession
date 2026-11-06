@@ -50,6 +50,26 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end flex-wrap">
+                <!-- User Profile & Logout Button -->
+                <div id="userProfileBadge" class="hidden flex items-center gap-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700 text-xs text-white">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="userNameDisplay" class="font-bold">Admin</span>
+                    <span id="userRoleDisplay" class="bg-gymRed text-[10px] px-2 py-0.5 rounded font-semibold text-white">ADMIN</span>
+                    <button onclick="openChangePinModal()" class="ml-1 text-gray-400 hover:text-amber-400 font-semibold transition flex items-center gap-1" title="Ubah PIN">
+                        🔑 Ubah PIN
+                    </button>
+                    <button onclick="logoutUser()" class="ml-1 text-gray-400 hover:text-red-400 font-bold transition" title="Logout">
+                        🚪 Logout
+                    </button>
+                </div>
+                <!-- Tombol Persetujuan Admin (Baru) -->
+                <button id="btnApprovals" onclick="openApprovalsModal()" class="hidden flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5 relative">
+                    <svg class="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    <span>Persetujuan</span>
+                    <span id="approvalBadgeCount" class="bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ml-1">0</span>
+                </button>
                 <!-- Status & Tombol Real-time Cloud (Diumbunkan / Hidden) -->
                 <button id="btnFirebaseConfig" class="hidden flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition items-center justify-center gap-1.5">
                     <svg class="w-4 h-4 text-amber-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,15 +84,15 @@
                     </svg>
                     Google Sheets
                 </button>
-                <!-- Export Excel -->
-                <button onclick="exportToExcel()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                <!-- Export Excel (ID Added for Role Control) -->
+                <button id="btnExportExcel" onclick="exportToExcel()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Export Excel
                 </button>
-                <!-- Kelola PT -->
-                <button onclick="openManagePTModal()" class="flex-1 sm:flex-none bg-gray-700 hover:bg-gray-600 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                <!-- Kelola PT (ID Added for Role Control) -->
+                <button id="btnManagePT" onclick="openManagePTModal()" class="flex-1 sm:flex-none bg-gray-700 hover:bg-gray-600 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -108,7 +128,7 @@
                     <h2 class="text-xl font-bold text-gymDark flex items-center gap-2">
                         Daftar Member <span id="activePTTitle" class="text-sm font-semibold text-gymRed bg-red-50 px-2.5 py-1 rounded-md">Semua PT</span>
                     </h2>
-                    <p class="text-xs text-gray-500">Member diurutkan otomatis A-Z. Klik "-1 Sesi" untuk potong instan atau "Cut Custom" untuk atur tanggal/jam.</p>
+                    <p class="text-xs text-gray-500">Member diurutkan otomatis A-Z. Klik "Cut Sesi" untuk memasukkan tanggal & jam pemotongan sesi.</p>
                 </div>
                 <!-- Search Box -->
                 <div class="relative w-full sm:w-64">
@@ -120,7 +140,7 @@
             </div>
 
             <!-- List Member Container -->
-            <div id="memberListContainer" class="space-y-2">
+            <div id="memberListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <!-- Member Rows akan di-render di sini -->
             </div>
         </div>
@@ -184,6 +204,79 @@
 
     <!-- ==================== MODALS ==================== -->
 
+    <!-- Modal Login Multi-User (Baru) -->
+    <div id="modalLogin" class="fixed inset-0 bg-gymDark/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-5 border border-gray-100">
+            <div class="text-center space-y-2">
+                <div class="mx-auto w-12 h-12 bg-gymRed text-white rounded-2xl shadow-lg flex items-center justify-center">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h3 class="font-bold text-xl text-gymDark tracking-tight">Login Staff Gym</h3>
+                <p class="text-xs text-gray-500">Pilih akun Anda dan masukkan PIN/Password untuk masuk.</p>
+            </div>
+            <form id="formLogin" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Pilih Akun / User</label>
+                    <select id="loginUserSelect" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none bg-white font-semibold text-gray-700"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">PIN / Password</label>
+                    <input type="password" id="loginPinInput" required placeholder="Masukkan PIN" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    <p class="text-[10px] text-gray-400 mt-1">* Default PIN: <span class="font-bold text-gray-600">1234</span> (Admin: <span class="font-bold text-gray-600">1234</span> atau <span class="font-bold text-gray-600">admin</span>)</p>
+                </div>
+                <button type="submit" class="w-full bg-gymRed hover:bg-gymRedHover text-white py-2.5 rounded-lg text-xs font-semibold shadow transition flex items-center justify-center gap-2">
+                    🔑 Masuk ke Aplikasi
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Ubah PIN (Baru) -->
+    <div id="modalChangePin" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-gray-100">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-amber-100 text-amber-700 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0121 9z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gymDark">Ubah PIN Akses</h3>
+                        <p class="text-xs text-gray-500">Perbarui PIN keamanan akun Anda</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modalChangePin')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="formChangePin" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">User Aktif</label>
+                    <input type="text" id="changePinUserDisplay" readonly class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2.5 text-xs font-bold text-gray-700">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">PIN Lama</label>
+                    <input type="password" id="oldPinInput" required placeholder="Masukkan PIN lama" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">PIN Baru</label>
+                    <input type="password" id="newPinInput" required placeholder="Masukkan PIN baru" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Konfirmasi PIN Baru</label>
+                    <input type="password" id="confirmNewPinInput" required placeholder="Ulangi PIN baru" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modalChangePin')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg text-xs font-semibold transition">Batal</button>
+                    <button type="submit" class="w-1/2 bg-gymRed hover:bg-gymRedHover text-white py-2.5 rounded-lg text-xs font-semibold transition">Simpan PIN</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Tambah Member Baru -->
     <div id="modalAddMember" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
@@ -197,6 +290,10 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nama Member</label>
                     <input type="text" id="memberName" placeholder="Contoh: Budi Santoso" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nomor WhatsApp (Opsional)</label>
+                    <input type="tel" id="memberPhone" placeholder="Contoh: 081234567890" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Pilih Personal Trainer (PT)</label>
@@ -236,6 +333,10 @@
                     <input type="text" id="editMemberName" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
                 </div>
                 <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nomor WhatsApp</label>
+                    <input type="tel" id="editMemberPhone" placeholder="Contoh: 081234567890" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                </div>
+                <div>
                     <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Personal Trainer (PT)</label>
                     <select id="editMemberPT" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none"></select>
                 </div>
@@ -261,7 +362,7 @@
     <div id="modalCutCustom" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-lg text-gymDark">Cut Sesi Custom</h3>
+                <h3 class="font-bold text-lg text-gymDark">Cut Sesi Member</h3>
                 <button onclick="closeModal('modalCutCustom')" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
@@ -358,8 +459,8 @@
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 4h-7v3h7V7zm0 5h-7v3h7v-3zm-9-5H5v3h5V7zm0 5H5v3h5v-3zm0 5H5v3h5v-3zm9 0h-7v3h7v-3z"/></svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-lg text-gymDark">Integrasi Google Sheets</h3>
-                        <p class="text-xs text-gray-500">Otomatis simpan/edit/hapus cutting sesi ke Spreadsheet</p>
+                        <h3 class="font-bold text-lg text-gymDark">Pengaturan Google Sheets</h3>
+                        <p class="text-xs text-gray-500">Integrasi Web App Script Google Sheets</p>
                     </div>
                 </div>
                 <button onclick="closeModal('modalGoogleSheets')" class="text-gray-400 hover:text-gray-600">
@@ -368,18 +469,48 @@
             </div>
             <form id="formGoogleSheets" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Web App URL Google Script</label>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">URL Web App Google Apps Script</label>
                     <input type="url" id="googleSheetsUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
                 </div>
                 <div class="bg-green-50 p-3 rounded-lg border border-green-100 text-xs text-gray-700 space-y-1">
                     <div class="font-bold text-green-900">Status Integrasi:</div>
-                    <div id="googleSheetsStatus" class="text-gray-600">Mengecek koneksi...</div>
+                    <div id="googleSheetsStatus" class="text-gray-600">Mengecek status...</div>
                 </div>
                 <div class="flex gap-2 pt-2">
                     <button type="button" onclick="closeModal('modalGoogleSheets')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-semibold transition">Batal</button>
-                    <button type="submit" class="w-1/2 bg-green-700 hover:bg-green-800 text-white py-2.5 rounded-lg text-sm font-semibold transition">Simpan & Hubungkan</button>
+                    <button type="submit" class="w-1/2 bg-green-700 hover:bg-green-800 text-white py-2.5 rounded-lg text-sm font-semibold transition">Simpan URL</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Persetujuan Admin (Baru) -->
+    <div id="modalApprovals" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-amber-100 text-amber-700 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gymDark">Persetujuan Pengajuan PT</h3>
+                        <p class="text-xs text-gray-500">Daftar pengajuan cut sesi / member baru dari Personal Trainer</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modalApprovals')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="approvalsListContainer" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                <!-- Approval requests will be rendered here -->
+            </div>
+            <div class="text-right pt-2 border-t">
+                <button onclick="closeModal('modalApprovals')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-xs font-semibold transition">
+                    Tutup
+                </button>
+            </div>
         </div>
     </div>
 
@@ -479,27 +610,23 @@
 
     <!-- Application Logic Script -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { 
+            getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // =========================================================================
-        // KODE INTEGRASI LANGSUNG (BISA DIPASANG DI SINI AGAR OTOMATIS AKTIF)
-        // =========================================================================
-        
-        // 1. Masukkan URL Web App Google Script Anda di dalam tanda petik di bawah ini:
-        const HARDCODED_GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwLH31Qfyxbedsh8LGJk6AOYt8dM_0F6IyN8pgbYbJUHuQ7rOab8ELqbFCB9ZVjC8wkdg/exec"; 
-
-        // 2. Masukkan Firebase Config Anda di bawah ini (jika disi, otomatis real-time):
+        const HARDCODED_GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwLH31Qfyxbedsh8LGJk6AOYt8dM_0F6IyN8pgbYbJUHuQ7rOab8ELqbFCB9ZVjC8wkdg/exec";
         const HARDCODED_FIREBASE_CONFIG = {
-            apiKey: "AIzaSyBy43lbTBPQj9zV0JuAUUk--Hz4bu74R4g",
-            authDomain: "cutyoursession-ff7d0.firebaseapp.com",
-            projectId: "cutyoursession-ff7d0",
-            storageBucket: "cutyoursession-ff7d0.firebasestorage.app",
-            messagingSenderId: "582704482677",
-            appId: "1:582704482677:web:a2329f5fc835dd17bbeb3c"
+          "apiKey": "AIzaSyBy43lbTBPQj9zV0JuAUUk--Hz4bu74R4g",
+          "authDomain": "cutyoursession-ff7d0.firebaseapp.com",
+          "projectId": "cutyoursession-ff7d0",
+          "storageBucket": "cutyoursession-ff7d0.firebasestorage.app",
+          "messagingSenderId": "582704482677",
+          "appId": "1:582704482677:web:a2329f5fc835dd17bbeb3c"
         };
-        // =========================================================================
 
         // Global State & Data Storage
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-gym-app';
@@ -522,7 +649,12 @@
         let selectedPT = 'Semua PT';
         let members = [];
         let logs = [];
+        let approvals = []; // State untuk daftar pengajuan persetujuan
+        let userPins = {};
         let editingPTIndex = null;
+
+        // Login & Session State (Baru)
+        let activeUser = null; // { name: 'Admin', role: 'admin' } atau { name: 'Raihan', role: 'pt' }
 
         let dateSortAsc = true; // true: Old -> New, false: New -> Old
         let pendingDeleteType = null;
@@ -532,27 +664,159 @@
         let isFirstPTsSnapshot = true;
 
         const defaultMembers = [
-            { id: '1', name: 'Andi Wijaya', ptName: 'Veli', totalSessions: 20, sessionsUsed: 6, lastCut: '2026-11-04 jam 15:48' },
-            { id: '2', name: 'Budi Santoso', ptName: 'Raihan', totalSessions: 12, sessionsUsed: 4, lastCut: '2026-03-01 jam 10:15' },
-            { id: '3', name: 'Doni Pratama', ptName: 'Rivo', totalSessions: 8, sessionsUsed: 3, lastCut: '2026-03-01 jam 17:45' },
-            { id: '4', name: 'Kevin Tan', ptName: 'Jong Han', totalSessions: 15, sessionsUsed: 4, lastCut: '2026-11-04 jam 15:48' },
-            { id: '5', name: 'Maya Putri', ptName: 'Thomas', totalSessions: 10, sessionsUsed: 10, lastCut: '2026-02-28 jam 11:20' },
-            { id: '6', name: 'Siti Aminah', ptName: 'Raihan', totalSessions: 10, sessionsUsed: 9, lastCut: '2026-03-02 jam 14:30' }
+            { id: '1', name: 'Andi Wijaya', phone: '081234567890', ptName: 'Veli', totalSessions: 20, sessionsUsed: 6, lastCut: '2026-11-04 jam 15:48' },
+            { id: '2', name: 'Budi Santoso', phone: '081987654321', ptName: 'Raihan', totalSessions: 12, sessionsUsed: 4, lastCut: '2026-03-01 jam 10:15' },
+            { id: '3', name: 'Doni Pratama', phone: '085711223344', ptName: 'Rivo', totalSessions: 8, sessionsUsed: 3, lastCut: '2026-03-01 jam 17:45' },
+            { id: '4', name: 'Kevin Tan', phone: '087899887766', ptName: 'Jong Han', totalSessions: 15, sessionsUsed: 4, lastCut: '2026-11-04 jam 15:48' },
+            { id: '5', name: 'Maya Putri', phone: '081344556677', ptName: 'Thomas', totalSessions: 10, sessionsUsed: 10, lastCut: '2026-02-28 jam 11:20' },
+            { id: '6', name: 'Siti Aminah', phone: '082155667788', ptName: 'Raihan', totalSessions: 10, sessionsUsed: 9, lastCut: '2026-03-02 jam 14:30' }
         ];
 
         const defaultLogs = [
-            { id: '101', date: '2026-11-03', time: '10:00', ptName: 'Veli', memberName: 'Andi Wijaya', amountCut: 1, sisaSesi: 14, notes: 'Stretching & Core' },
-            { id: '102', date: '2026-11-04', time: '15:48', ptName: 'Veli', memberName: 'Andi Wijaya', amountCut: 1, sisaSesi: 14, notes: '-' },
-            { id: '103', date: '2026-11-04', time: '15:48', ptName: 'Jong Han', memberName: 'Kevin Tan', amountCut: 1, sisaSesi: 11, notes: '-' },
-            { id: '104', date: '2026-11-05', time: '16:49', ptName: 'Jong Han', memberName: 'Nathanael Ziven', amountCut: 1, sisaSesi: 9, notes: 'Potong instan 1 sesi' }
+            { id: '101', date: '2026-11-04', time: '15:48', ptName: 'Veli', memberName: 'Andi Wijaya', amountCut: 1, sisaSesi: 14, notes: 'Latihan Upper Body' },
+            { id: '102', date: '2026-03-01', time: '10:15', ptName: 'Raihan', memberName: 'Budi Santoso', amountCut: 1, sisaSesi: 8, notes: 'Latihan Chest & Triceps' },
+            { id: '103', date: '2026-03-01', time: '17:45', ptName: 'Rivo', memberName: 'Doni Pratama', amountCut: 1, sisaSesi: 5, notes: 'Latihan Leg Day' },
+            { id: '104', date: '2026-11-04', time: '15:48', ptName: 'Jong Han', memberName: 'Kevin Tan', amountCut: 1, sisaSesi: 11, notes: 'Latihan Cardio & Core' },
+            { id: '105', date: '2026-02-28', time: '11:20', ptName: 'Thomas', memberName: 'Maya Putri', amountCut: 1, sisaSesi: 0, notes: 'Sesi Terakhir Leg Day' },
+            { id: '106', date: '2026-03-02', time: '14:30', ptName: 'Raihan', memberName: 'Siti Aminah', amountCut: 1, sisaSesi: 1, notes: 'Latihan Full Body' }
         ];
+
+        function formatWAUrl(phone) {
+            if (!phone) return '#';
+            let clean = phone.replace(/[^0-9]/g, '');
+            if (clean.startsWith('0')) clean = '62' + clean.slice(1);
+            return `https://wa.me/${clean}`;
+        }
 
         // Init App
         window.addEventListener('DOMContentLoaded', async () => {
             loadLocalPTs();
+            loadLocalUserPins();
             initFirebaseOrLocal();
             setupEventListeners();
+            checkUserSession();
         });
+
+        function loadLocalUserPins() {
+            const savedPins = localStorage.getItem('user_pins');
+            if (savedPins) {
+                try { userPins = JSON.parse(savedPins); } catch(e) {}
+            }
+        }
+
+        function getUserPin(userName) {
+            if (userPins && userPins[userName]) {
+                return String(userPins[userName]);
+            }
+            return '1234'; // Default PIN jika belum diubah
+        }
+
+        async function saveUserPinsToCloud(newPins) {
+            userPins = newPins;
+            localStorage.setItem('user_pins', JSON.stringify(userPins));
+            if (db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pins'), { pins: userPins });
+                } catch (e) {
+                    console.warn("Error saving PIN list to cloud:", e);
+                }
+            }
+        }
+
+        // User Auth & Session Logic (Baru)
+        function checkUserSession() {
+            const savedSession = sessionStorage.getItem('active_gym_user');
+            if (savedSession) {
+                try {
+                    activeUser = JSON.parse(savedSession);
+                    applyUserSessionUI();
+                    return;
+                } catch(e) {}
+            }
+            showLoginModal();
+        }
+
+        function showLoginModal() {
+            const selectEl = document.getElementById('loginUserSelect');
+            if (selectEl) {
+                let html = `<option value="Admin">🔑 Admin / Head PT</option>`;
+                ptList.forEach(pt => {
+                    html += `<option value="${pt}">🏋️ Trainer: ${pt}</option>`;
+                });
+                selectEl.innerHTML = html;
+            }
+            openModal('modalLogin');
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const userChoice = document.getElementById('loginUserSelect').value;
+            const pinInput = document.getElementById('loginPinInput').value.trim();
+
+            const expectedPin = getUserPin(userChoice);
+
+            if (pinInput === expectedPin || (userChoice === 'Admin' && pinInput === 'admin')) {
+                const role = (userChoice === 'Admin') ? 'admin' : 'pt';
+                activeUser = { name: userChoice, role: role };
+                sessionStorage.setItem('active_gym_user', JSON.stringify(activeUser));
+                
+                closeModal('modalLogin');
+                document.getElementById('loginPinInput').value = '';
+                
+                if (role === 'pt') {
+                    selectPT(userChoice); // Otomatis filter ke tab PT yang login
+                }
+                
+                applyUserSessionUI();
+                showToast(`Selamat datang, ${userChoice}!`);
+            } else {
+                showToast("PIN / Password salah!");
+            }
+        }
+
+        function logoutUser() {
+            sessionStorage.removeItem('active_gym_user');
+            activeUser = null;
+            document.getElementById('userProfileBadge')?.classList.add('hidden');
+            showLoginModal();
+            showToast("Berhasil logout.");
+        }
+
+        function applyUserSessionUI() {
+            if (!activeUser) return;
+            const badgeEl = document.getElementById('userProfileBadge');
+            const nameEl = document.getElementById('userNameDisplay');
+            const roleEl = document.getElementById('userRoleDisplay');
+            const btnExport = document.getElementById('btnExportExcel');
+            const btnManagePT = document.getElementById('btnManagePT');
+            const btnApprovals = document.getElementById('btnApprovals');
+
+            if (badgeEl && nameEl && roleEl) {
+                nameEl.innerText = activeUser.name;
+                roleEl.innerText = activeUser.role === 'admin' ? 'ADMIN' : 'TRAINER';
+                roleEl.className = activeUser.role === 'admin' 
+                    ? 'bg-gymRed text-[10px] px-2 py-0.5 rounded font-semibold text-white' 
+                    : 'bg-indigo-600 text-[10px] px-2 py-0.5 rounded font-semibold text-white';
+                badgeEl.classList.remove('hidden');
+            }
+
+            if (activeUser.role === 'pt') {
+                selectedPT = activeUser.name;
+                if (btnExport) btnExport.classList.add('hidden');
+                if (btnManagePT) btnManagePT.classList.add('hidden');
+                if (btnApprovals) btnApprovals.classList.add('hidden');
+            } else {
+                if (btnExport) btnExport.classList.remove('hidden');
+                if (btnManagePT) btnManagePT.classList.remove('hidden');
+                if (btnApprovals) btnApprovals.classList.remove('hidden');
+            }
+
+            renderPTTabs();
+            renderMembers();
+            renderLogs();
+            updateApprovalBadge();
+            closeModal('modalLogin');
+        }
 
         function loadLocalPTs() {
             const savedPTs = localStorage.getItem('pt_list');
@@ -608,6 +872,34 @@
             
             const statusTextEl = document.getElementById('cloudStatusText');
             const connStatusEl = document.getElementById('firebaseConnectionStatus');
+
+            // Synchronize Approvals across all devices
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'approvals'), (snapshot) => {
+                const cloudApprovals = [];
+                snapshot.forEach((doc) => {
+                    cloudApprovals.push({ id: doc.id, ...doc.data() });
+                });
+                approvals = cloudApprovals;
+                localStorage.setItem('pt_approvals', JSON.stringify(approvals));
+                updateApprovalBadge();
+                renderApprovals();
+                renderMembers();
+            }, (error) => {
+                console.warn("Error cloud approvals:", error);
+            });
+
+            // Synchronize User PINs across all devices
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pins'), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && data.pins) {
+                        userPins = data.pins;
+                        localStorage.setItem('user_pins', JSON.stringify(userPins));
+                    }
+                }
+            }, (error) => {
+                console.warn("Error cloud PINs:", error);
+            });
 
             // Synchronize PT List across all devices
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), async (docSnap) => {
@@ -713,13 +1005,113 @@
                 localStorage.setItem('pt_logs', JSON.stringify(logs));
             }
 
+            const savedApprovals = localStorage.getItem('pt_approvals');
+            if (savedApprovals !== null) {
+                try { approvals = JSON.parse(savedApprovals); } catch(e) { approvals = []; }
+            }
+
             renderPTTabs();
             renderMembers();
             renderLogs();
+            updateApprovalBadge();
+        }
+
+        // Helper untuk Simpan/Hapus Approval
+        async function saveApprovalToCloud(reqObj) {
+            if (db) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'approvals', String(reqObj.id)), reqObj);
+            } else {
+                const idx = approvals.findIndex(a => String(a.id) === String(reqObj.id));
+                if (idx >= 0) approvals[idx] = reqObj;
+                else approvals.push(reqObj);
+                localStorage.setItem('pt_approvals', JSON.stringify(approvals));
+            }
+            updateApprovalBadge();
+            renderApprovals();
+            renderMembers();
+        }
+
+        async function removeApprovalFromCloud(reqId) {
+            if (db) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'approvals', String(reqId)));
+            } else {
+                approvals = approvals.filter(a => String(a.id) !== String(reqId));
+                localStorage.setItem('pt_approvals', JSON.stringify(approvals));
+            }
+            updateApprovalBadge();
+            renderApprovals();
+            renderMembers();
+        }
+
+        async function saveMemberToCloud(member) {
+            const idx = members.findIndex(m => String(m.id) === String(member.id));
+            if (idx >= 0) members[idx] = member;
+            else members.push(member);
+            localStorage.setItem('pt_members', JSON.stringify(members));
+
+            if (db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(member.id)), member);
+                } catch (e) {
+                    console.warn("Error saving member to cloud:", e);
+                }
+            }
+            renderPTTabs();
+            renderMembers();
+        }
+
+        async function removeMemberFromCloud(memberId) {
+            members = members.filter(m => String(m.id) !== String(memberId));
+            localStorage.setItem('pt_members', JSON.stringify(members));
+
+            if (db) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(memberId)));
+                } catch (e) {
+                    console.warn("Error removing member from cloud:", e);
+                }
+            }
+            renderPTTabs();
+            renderMembers();
+        }
+
+        async function saveLogToCloud(logObj) {
+            const idx = logs.findIndex(l => String(l.id) === String(logObj.id));
+            if (idx >= 0) logs[idx] = logObj;
+            else logs.push(logObj);
+            localStorage.setItem('pt_logs', JSON.stringify(logs));
+
+            if (db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logObj.id)), logObj);
+                } catch (e) {
+                    console.warn("Error saving log to cloud:", e);
+                }
+            }
+            renderLogs();
+            syncToGoogleSheets(logObj);
+        }
+
+        async function removeLogFromCloud(logId) {
+            const logObj = logs.find(l => String(l.id) === String(logId));
+            logs = logs.filter(l => String(l.id) !== String(logId));
+            localStorage.setItem('pt_logs', JSON.stringify(logs));
+
+            if (db) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logId)));
+                } catch (e) {
+                    console.warn("Error removing log from cloud:", e);
+                }
+            }
+            renderLogs();
+            if (logObj) {
+                syncToGoogleSheets({ ...logObj, action: 'delete' });
+            }
         }
 
         async function savePTsToCloud(newList) {
-            ptList = [...newList];
+            ptList = newList;
             localStorage.setItem('pt_list', JSON.stringify(ptList));
             if (db) {
                 try {
@@ -733,72 +1125,30 @@
             renderLogs();
         }
 
-        async function saveMemberToCloud(memberObj) {
-            if (db) {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(memberObj.id)), memberObj);
-            } else {
-                const idx = members.findIndex(m => String(m.id) === String(memberObj.id));
-                if (idx >= 0) members[idx] = memberObj;
-                else members.push(memberObj);
-                localStorage.setItem('pt_members', JSON.stringify(members));
-            }
-            renderMembers();
-        }
-
-        async function removeMemberFromCloud(memberId) {
-            if (db) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(memberId)));
-            } else {
-                members = members.filter(m => String(m.id) !== String(memberId));
-                localStorage.setItem('pt_members', JSON.stringify(members));
-            }
-            renderMembers();
-        }
-
-        async function saveLogToCloud(logObj) {
-            if (!logObj.action) logObj.action = 'update';
-            sendToGoogleSheets(logObj);
-            if (db) {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logObj.id)), logObj);
-            } else {
-                const idx = logs.findIndex(l => String(l.id) === String(logObj.id));
-                if (idx >= 0) logs[idx] = logObj;
-                else logs.push(logObj);
-                localStorage.setItem('pt_logs', JSON.stringify(logs));
-            }
-            renderLogs();
-        }
-
-        async function removeLogFromCloud(logId) {
-            sendToGoogleSheets({ 
-                id: String(logId), 
-                action: 'delete' 
-            });
-
-            if (db) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logId)));
-            } else {
-                logs = logs.filter(l => String(l.id) !== String(logId));
-                localStorage.setItem('pt_logs', JSON.stringify(logs));
-            }
-            renderLogs();
-        }
-
-        function sendToGoogleSheets(logObj) {
-            let scriptUrl = HARDCODED_GOOGLE_SHEETS_URL || localStorage.getItem('google_sheets_url');
-            if (!scriptUrl) return;
-            scriptUrl = scriptUrl.trim();
-            if (!scriptUrl) return;
+        async function syncToGoogleSheets(payload) {
+            const url = HARDCODED_GOOGLE_SHEETS_URL || localStorage.getItem('google_sheets_url');
+            if (!url) return;
 
             try {
-                fetch(scriptUrl, {
+                await fetch(url, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(logObj)
-                }).catch(err => console.error("Error Google Sheets:", err));
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
             } catch (err) {
-                console.error("Fetch Google Sheets Error:", err);
+                console.warn("Error Google Sheets Sync:", err);
+            }
+        }
+
+        function updateApprovalBadge() {
+            const badgeCountEl = document.getElementById('approvalBadgeCount');
+            const btnApprovals = document.getElementById('btnApprovals');
+            const pendingCount = approvals.length;
+            
+            if (badgeCountEl) badgeCountEl.innerText = pendingCount;
+            if (btnApprovals && activeUser && activeUser.role === 'admin') {
+                btnApprovals.classList.remove('hidden');
             }
         }
 
@@ -807,26 +1157,39 @@
             const container = document.getElementById('ptTabsContainer');
             if (!container) return;
 
-            const totalMembers = members.length;
-            let html = `
-                <button onclick="selectPT('Semua PT')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${selectedPT === 'Semua PT' ? 'bg-gymRed text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
-                    <span>Semua PT</span>
-                    <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold ${selectedPT === 'Semua PT' ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-700'}">${totalMembers}</span>
-                </button>
-            `;
+            const isPT = activeUser && activeUser.role === 'pt';
 
-            ptList.forEach(pt => {
-                const count = members.filter(m => m.ptName === pt).length;
-                const isSelected = selectedPT === pt;
-                html += `
-                    <button onclick="selectPT('${pt}')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${isSelected ? 'bg-gymRed text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
-                        <span>${pt}</span>
-                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold ${isSelected ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-700'}">${count}</span>
+            if (isPT) {
+                selectedPT = activeUser.name;
+                const count = members.filter(m => m.ptName === activeUser.name).length;
+                container.innerHTML = `
+                    <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gymRed text-white shadow flex items-center gap-1.5 cursor-default">
+                        <span>PT ${activeUser.name}</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-white/25 text-white">${count}</span>
                     </button>
                 `;
-            });
+            } else {
+                const totalMembers = members.length;
+                let html = `
+                    <button onclick="selectPT('Semua PT')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${selectedPT === 'Semua PT' ? 'bg-gymRed text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+                        <span>Semua PT</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold ${selectedPT === 'Semua PT' ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-700'}">${totalMembers}</span>
+                    </button>
+                `;
 
-            container.innerHTML = html;
+                ptList.forEach(pt => {
+                    const count = members.filter(m => m.ptName === pt).length;
+                    const isSelected = selectedPT === pt;
+                    html += `
+                        <button onclick="selectPT('${pt}')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${isSelected ? 'bg-gymRed text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+                            <span>${pt}</span>
+                            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold ${isSelected ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-700'}">${count}</span>
+                        </button>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
 
             const activeTitle = document.getElementById('activePTTitle');
             if (activeTitle) activeTitle.innerText = selectedPT;
@@ -836,7 +1199,11 @@
         }
 
         function selectPT(pt) {
-            selectedPT = pt;
+            if (activeUser && activeUser.role === 'pt') {
+                selectedPT = activeUser.name;
+            } else {
+                selectedPT = pt;
+            }
             renderPTTabs();
             renderMembers();
             renderLogs();
@@ -848,9 +1215,11 @@
             if (!container) return;
 
             const query = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+            const isPT = activeUser && activeUser.role === 'pt';
+            const isAdmin = !activeUser || activeUser.role === 'admin';
 
             let filtered = members.filter(m => {
-                const matchPT = (selectedPT === 'Semua PT') || (m.ptName === selectedPT);
+                const matchPT = isPT ? (m.ptName === activeUser.name) : ((selectedPT === 'Semua PT') || (m.ptName === selectedPT));
                 const matchQuery = m.name.toLowerCase().includes(query) || (m.ptName && m.ptName.toLowerCase().includes(query));
                 return matchPT && matchQuery;
             });
@@ -859,8 +1228,8 @@
 
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-white rounded-xl p-8 text-center border border-gray-100 text-gray-400 text-xs">
-                        Belum ada member ${selectedPT !== 'Semua PT' ? 'untuk PT ' + selectedPT : ''}.
+                    <div class="col-span-full bg-white rounded-xl p-8 text-center border border-gray-100 text-gray-400 text-xs">
+                        Belum ada member ${isPT ? 'untuk PT ' + activeUser.name : (selectedPT !== 'Semua PT' ? 'untuk PT ' + selectedPT : '')}.
                     </div>
                 `;
                 return;
@@ -871,7 +1240,9 @@
                 const sisa = Math.max(0, m.totalSessions - m.sessionsUsed);
                 const percent = Math.min(100, Math.round((m.sessionsUsed / m.totalSessions) * 100));
                 
-                // Indikator Warna Dinamis Berdasarkan Sisa Sesi
+                // Pengecekan apakah ada pengajuan pending untuk member ini
+                const pendingCut = approvals.find(a => a.type === 'cut_sesi' && (String(a.memberId) === String(m.id) || a.memberName === m.name));
+
                 let statusBg, statusText, textColor, barBg;
                 if (sisa === 0) {
                     statusBg = 'bg-red-100 text-red-800 border border-red-200';
@@ -895,48 +1266,62 @@
                     barBg = 'bg-emerald-500';
                 }
 
+                const adminActionButtons = isAdmin ? `
+                    <button onclick="openEditMemberModal('${m.id}')" class="p-1 text-gray-400 hover:text-gymDark rounded hover:bg-gray-100 transition" title="Edit Member">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </button>
+                    <button onclick="confirmDelete('member', '${m.id}')" class="p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50 transition" title="Hapus Member">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                ` : '';
+
+                const waLink = m.phone ? `
+                    <a href="${formatWAUrl(m.phone)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 hover:underline" title="Chat via WhatsApp">
+                        <svg class="w-3 h-3 fill-current text-emerald-500" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.205 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                        <span>${m.phone}</span>
+                    </a>
+                ` : '';
+
                 html += `
-                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-red-200 transition">
-                        <div class="flex items-center gap-3 cursor-pointer group flex-1" onclick="openMemberLogsModal('${m.id}')">
-                            <div class="w-10 h-10 rounded-full bg-red-50 text-gymRed font-bold flex items-center justify-center text-sm group-hover:bg-gymRed group-hover:text-white transition">
-                                ${m.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h3 class="font-bold text-sm text-gymDark group-hover:text-gymRed transition">${m.name}</h3>
-                                    <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full ${statusBg}">${statusText}</span>
+                    <div class="bg-white rounded-xl p-3 border border-gray-100 shadow-sm flex flex-col justify-between gap-2 hover:border-red-200 transition">
+                        <!-- Baris Atas: Info Member & Aksi Admin -->
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5 cursor-pointer group flex-1 min-w-0" onclick="openMemberLogsModal('${m.id}')">
+                                <div class="w-8 h-8 rounded-full bg-red-50 text-gymRed font-bold flex-shrink-0 flex items-center justify-center text-xs group-hover:bg-gymRed group-hover:text-white transition">
+                                    ${m.name.charAt(0).toUpperCase()}
                                 </div>
-                                <p class="text-xs text-gray-400">PT: <span class="font-semibold text-gray-600">${m.ptName}</span> ${m.lastCut ? '• Cut terakhir: ' + m.lastCut : ''}</p>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <h3 class="font-bold text-xs sm:text-sm text-gymDark group-hover:text-gymRed transition truncate">${m.name}</h3>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full ${statusBg}">${statusText}</span>
+                                        ${pendingCut ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">⌛ Menunggu Persetujuan Admin</span>` : ''}
+                                    </div>
+                                    <div class="flex items-center gap-1.5 text-[11px] text-gray-400 truncate">
+                                        <span>PT: <b class="text-gray-600">${m.ptName}</b></span>
+                                        ${waLink ? `<span>•</span>${waLink}` : ''}
+                                        ${m.lastCut ? `<span>•</span><span>Cut: ${m.lastCut}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            ${adminActionButtons ? `<div class="flex items-center gap-0.5 flex-shrink-0">${adminActionButtons}</div>` : ''}
+                        </div>
+
+                        <!-- Baris Tengah: Sisa Sesi & Progress Bar -->
+                        <div class="w-full bg-gray-50/80 px-2.5 py-1.5 rounded-lg border border-gray-100">
+                            <div class="flex justify-between items-center text-[11px] mb-1">
+                                <span class="text-gray-500 font-medium">Terpakai: <b class="text-gray-700">${m.sessionsUsed}/${m.totalSessions}</b></span>
+                                <span class="${textColor}">Sisa: ${sisa} Sesi</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                <div class="${barBg} h-1.5 rounded-full transition-all duration-300" style="width: ${percent}%"></div>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-4 flex-wrap md:flex-nowrap justify-between md:justify-end">
-                            <div class="w-full sm:w-48">
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-gray-500 font-medium">Terpakai: <b class="text-gray-700">${m.sessionsUsed}/${m.totalSessions}</b></span>
-                                    <span class="${textColor}">Sisa: ${sisa} Sesi</span>
-                                </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                                    <div class="${barBg} h-2 rounded-full transition-all duration-300" style="width: ${percent}%"></div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-2">
-                                <button onclick="cutOneSession('${m.id}')" ${sisa <= 0 ? 'disabled' : ''} class="bg-gymRed hover:bg-gymRedHover disabled:bg-gray-300 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"></path></svg>
-                                    -1 Sesi
-                                </button>
-                                <button onclick="openCutCustomModal('${m.id}')" ${sisa <= 0 ? 'disabled' : ''} class="bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-lg transition">
-                                    Cut Custom
-                                </button>
-                                <button onclick="openEditMemberModal('${m.id}')" class="p-2 text-gray-400 hover:text-gymDark rounded-lg hover:bg-gray-100 transition" title="Edit Member">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                </button>
-                                <button onclick="confirmDelete('member', '${m.id}')" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition" title="Hapus Member">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                        </div>
+                        <!-- Baris Bawah: Tombol Cut Sesi (Manual Input Date & Time) -->
+                        <button onclick="openCutCustomModal('${m.id}')" ${sisa <= 0 || pendingCut ? 'disabled' : ''} class="w-full bg-gymRed hover:bg-gymRedHover disabled:bg-gray-300 text-white text-xs font-semibold py-1.5 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            ${pendingCut ? '⌛ Menunggu Persetujuan' : 'Cut Sesi'}
+                        </button>
                     </div>
                 `;
             });
@@ -952,8 +1337,11 @@
             const fromDate = document.getElementById('dateFromInput')?.value || '';
             const toDate = document.getElementById('dateToInput')?.value || '';
 
+            const isPT = activeUser && activeUser.role === 'pt';
+            const isAdmin = !activeUser || activeUser.role === 'admin';
+
             let filtered = logs.filter(l => {
-                const matchPT = (selectedPT === 'Semua PT') || (l.ptName === selectedPT);
+                const matchPT = isPT ? (l.ptName === activeUser.name) : ((selectedPT === 'Semua PT') || (l.ptName === selectedPT));
                 let matchDate = true;
                 if (fromDate) matchDate = matchDate && (l.date >= fromDate);
                 if (toDate) matchDate = matchDate && (l.date <= toDate);
@@ -991,6 +1379,17 @@
 
             let html = '';
             filtered.forEach(l => {
+                const adminLogActions = isAdmin ? `
+                    <div class="flex items-center justify-end gap-1">
+                        <button onclick="openEditLogModal('${l.id}')" class="p-1.5 text-gray-400 hover:text-gymDark rounded hover:bg-gray-200 transition" title="Edit Log">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </button>
+                        <button onclick="confirmDelete('log', '${l.id}')" class="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50 transition" title="Hapus Log">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                ` : `<span class="text-gray-400 italic text-[11px]">View only</span>`;
+
                 html += `
                     <tr class="hover:bg-gray-50/80 transition">
                         <td class="py-3 px-4 font-medium text-gray-900">${l.date}</td>
@@ -1000,16 +1399,7 @@
                         <td class="py-3 px-4 font-bold text-gymRed">-${l.amountCut} Sesi</td>
                         <td class="py-3 px-4 text-gray-600">Sisa ${l.sisaSesi}</td>
                         <td class="py-3 px-4 text-gray-500 italic max-w-xs truncate">${l.notes || '-'}</td>
-                        <td class="py-3 px-4 text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                <button onclick="openEditLogModal('${l.id}')" class="p-1.5 text-gray-400 hover:text-gymDark rounded hover:bg-gray-200 transition" title="Edit Log">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                </button>
-                                <button onclick="confirmDelete('log', '${l.id}')" class="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50 transition" title="Hapus Log">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                        </td>
+                        <td class="py-3 px-4 text-right">${adminLogActions}</td>
                     </tr>
                 `;
             });
@@ -1075,6 +1465,27 @@
             const timeStr = document.getElementById('cutTime').value;
             const notes = document.getElementById('cutNotes').value || '-';
 
+            // Jika user adalah PT (Trainer), kirim sebagai pengajuan persetujuan ke Admin
+            if (activeUser && activeUser.role === 'pt') {
+                const reqObj = {
+                    id: Date.now().toString(),
+                    type: 'cut_sesi',
+                    ptName: activeUser.name,
+                    memberName: member.name,
+                    memberId: member.id,
+                    amountCut: cutAmount,
+                    date: dateStr,
+                    time: timeStr,
+                    notes: notes,
+                    createdAt: new Date().toISOString()
+                };
+                await saveApprovalToCloud(reqObj);
+                closeModal('modalCutCustom');
+                showToast(`Pengajuan cut ${cutAmount} sesi dikirim ke Admin untuk disetujui.`);
+                return;
+            }
+
+            // Jika user adalah Admin, eksekusi langsung
             member.sessionsUsed += cutAmount;
             member.lastCut = `${dateStr} jam ${timeStr}`;
 
@@ -1096,52 +1507,163 @@
             showToast(`${cutAmount} Sesi dipotong untuk ${member.name}`);
         }
 
-        function openAddMemberModal() {
-            const ptSelect = document.getElementById('memberPT');
-            if (ptSelect) {
-                ptSelect.innerHTML = ptList.map(pt => `<option value="${pt}">${pt}</option>`).join('');
-                if (selectedPT !== 'Semua PT') ptSelect.value = selectedPT;
-            }
-            document.getElementById('formAddMember')?.reset();
-            openModal('modalAddMember');
-        }
-
         async function handleAddMember(e) {
             e.preventDefault();
             const name = document.getElementById('memberName').value.trim();
+            const phone = document.getElementById('memberPhone').value.trim();
             const ptName = document.getElementById('memberPT').value;
             const totalSessions = parseInt(document.getElementById('memberTotalSessions').value) || 10;
             const sessionsUsed = parseInt(document.getElementById('memberUsedSessions').value) || 0;
 
+            if (!name || !ptName) {
+                showToast("Mohon lengkapi nama member dan PT.");
+                return;
+            }
+
+            // Jika user adalah PT (Trainer), buat pengajuan persetujuan ke Admin
+            if (activeUser && activeUser.role === 'pt') {
+                const reqObj = {
+                    id: Date.now().toString(),
+                    type: 'add_member',
+                    ptName: ptName,
+                    memberName: name,
+                    phone: phone,
+                    totalSessions: totalSessions,
+                    sessionsUsed: sessionsUsed,
+                    createdAt: new Date().toISOString()
+                };
+                await saveApprovalToCloud(reqObj);
+                closeModal('modalAddMember');
+                document.getElementById('formAddMember')?.reset();
+                showToast(`Pengajuan tambah member ${name} dikirim ke Admin!`);
+                return;
+            }
+
+            // Jika user Admin, tambah langsung
             const newMember = {
                 id: Date.now().toString(),
-                name,
-                ptName,
-                totalSessions,
-                sessionsUsed,
+                name: name,
+                phone: phone,
+                ptName: ptName,
+                totalSessions: totalSessions,
+                sessionsUsed: sessionsUsed,
                 lastCut: ''
             };
 
             await saveMemberToCloud(newMember);
             closeModal('modalAddMember');
+            document.getElementById('formAddMember')?.reset();
             showToast(`Member ${name} berhasil ditambahkan!`);
         }
 
-        function openEditMemberModal(memberId) {
-            const member = members.find(m => String(m.id) === String(memberId));
-            if (!member) return;
+        // Render & Handle Approvals Admin
+        function renderApprovals() {
+            const container = document.getElementById('approvalsListContainer');
+            if (!container) return;
 
-            document.getElementById('editMemberId').value = member.id;
-            document.getElementById('editMemberName').value = member.name;
-            
-            const ptSelect = document.getElementById('editMemberPT');
-            if (ptSelect) {
-                ptSelect.innerHTML = ptList.map(pt => `<option value="${pt}" ${pt === member.ptName ? 'selected' : ''}>${pt}</option>`).join('');
+            if (approvals.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-gray-400 text-xs">
+                        Tidak ada pengajuan persetujuan yang tertunda.
+                    </div>
+                `;
+                return;
             }
 
-            document.getElementById('editMemberTotalSessions').value = member.totalSessions;
-            document.getElementById('editMemberUsedSessions').value = member.sessionsUsed;
-            openModal('modalEditMember');
+            let html = '';
+            approvals.forEach(req => {
+                const isCut = req.type === 'cut_sesi';
+                const typeBadge = isCut 
+                    ? `<span class="bg-red-100 text-gymRed font-bold px-2 py-0.5 rounded text-[10px]">CUT SESI (-${req.amountCut})</span>`
+                    : `<span class="bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded text-[10px]">MEMBER BARU</span>`;
+
+                html += `
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-3.5 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                ${typeBadge}
+                                <span class="text-xs font-bold text-gray-700">PT: ${req.ptName}</span>
+                            </div>
+                            <span class="text-[10px] text-gray-400">${req.date || ''} ${req.time || ''}</span>
+                        </div>
+                        
+                        <div class="text-xs text-gray-800 font-semibold">
+                            Member: <span class="text-gymDark font-bold">${req.memberName}</span>
+                            ${req.phone ? `<span class="text-emerald-600 font-medium"> (WA: ${req.phone})</span>` : ''}
+                            ${isCut ? `<span class="text-gray-500 font-normal"> (Catatan: ${req.notes || '-'})</span>` : `<span class="text-gray-500 font-normal"> (Total: ${req.totalSessions} Sesi)</span>`}
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-1 border-t border-gray-200/60">
+                            <button onclick="rejectRequest('${req.id}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                                ✕ Tolak
+                            </button>
+                            <button onclick="approveRequest('${req.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition">
+                                ✓ Izinkan / Setujui
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function approveRequest(reqId) {
+            const req = approvals.find(a => String(a.id) === String(reqId));
+            if (!req) return;
+
+            if (req.type === 'cut_sesi') {
+                const member = members.find(m => String(m.id) === String(req.memberId) || m.name === req.memberName);
+                if (member) {
+                    member.sessionsUsed += req.amountCut;
+                    member.lastCut = `${req.date} jam ${req.time}`;
+
+                    const newLog = {
+                        id: Date.now().toString(),
+                        date: req.date,
+                        time: req.time,
+                        ptName: req.ptName,
+                        memberName: member.name,
+                        amountCut: req.amountCut,
+                        sisaSesi: Math.max(0, member.totalSessions - member.sessionsUsed),
+                        notes: req.notes || '-',
+                        action: 'create'
+                    };
+
+                    await saveMemberToCloud(member);
+                    await saveLogToCloud(newLog);
+                    showToast(`Disetujui: Cut ${req.amountCut} sesi untuk ${member.name}`);
+                } else {
+                    showToast("Member tidak ditemukan!");
+                }
+            } else if (req.type === 'add_member') {
+                const newMember = {
+                    id: Date.now().toString(),
+                    name: req.memberName,
+                    phone: req.phone || '',
+                    ptName: req.ptName,
+                    totalSessions: req.totalSessions,
+                    sessionsUsed: req.sessionsUsed || 0,
+                    lastCut: ''
+                };
+                await saveMemberToCloud(newMember);
+                showToast(`Disetujui: Member ${req.memberName} berhasil ditambahkan!`);
+            }
+
+            await removeApprovalFromCloud(reqId);
+        }
+
+        async function rejectRequest(reqId) {
+            await removeApprovalFromCloud(reqId);
+            showToast("Pengajuan berhasil ditolak.");
+        }
+
+        function openApprovalsModal() {
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Hanya Admin / Head PT yang bisa membuka persetujuan.");
+                return;
+            }
+            renderApprovals();
+            openModal('modalApprovals');
         }
 
         async function handleEditMember(e) {
@@ -1150,25 +1672,21 @@
             const member = members.find(m => String(m.id) === String(id));
             if (!member) return;
 
-            member.name = document.getElementById('editMemberName').value.trim();
-            member.ptName = document.getElementById('editMemberPT').value;
-            member.totalSessions = parseInt(document.getElementById('editMemberTotalSessions').value) || 10;
-            member.sessionsUsed = parseInt(document.getElementById('editMemberUsedSessions').value) || 0;
+            const name = document.getElementById('editMemberName').value.trim();
+            const phone = document.getElementById('editMemberPhone').value.trim();
+            const ptName = document.getElementById('editMemberPT').value;
+            const totalSessions = parseInt(document.getElementById('editMemberTotalSessions').value) || 1;
+            const sessionsUsed = parseInt(document.getElementById('editMemberUsedSessions').value) || 0;
+
+            member.name = name;
+            member.phone = phone;
+            member.ptName = ptName;
+            member.totalSessions = totalSessions;
+            member.sessionsUsed = sessionsUsed;
 
             await saveMemberToCloud(member);
             closeModal('modalEditMember');
-            showToast("Data member diperbarui!");
-        }
-
-        function openEditLogModal(logId) {
-            const log = logs.find(l => String(l.id) === String(logId));
-            if (!log) return;
-
-            document.getElementById('editLogId').value = log.id;
-            document.getElementById('editLogDate').value = log.date;
-            document.getElementById('editLogTime').value = log.time;
-            document.getElementById('editLogNotes').value = log.notes || '';
-            openModal('modalEditLog');
+            showToast(`Data member ${name} berhasil diubah!`);
         }
 
         async function handleEditLog(e) {
@@ -1184,10 +1702,345 @@
 
             await saveLogToCloud(log);
             closeModal('modalEditLog');
-            showToast("Log riwayat diperbarui!");
+            showToast("Log riwayat berhasil diperbarui!");
+        }
+
+        async function executeConfirmDelete() {
+            if (!pendingDeleteId || !pendingDeleteType) {
+                closeModal('modalConfirm');
+                return;
+            }
+
+            if (pendingDeleteType === 'member') {
+                await removeMemberFromCloud(pendingDeleteId);
+                showToast("Member berhasil dihapus.");
+            } else if (pendingDeleteType === 'log') {
+                const log = logs.find(l => String(l.id) === String(pendingDeleteId));
+                if (log) {
+                    const member = members.find(m => m.name === log.memberName && m.ptName === log.ptName);
+                    if (member && member.sessionsUsed >= log.amountCut) {
+                        member.sessionsUsed = Math.max(0, member.sessionsUsed - log.amountCut);
+                        await saveMemberToCloud(member);
+                    }
+                }
+                await removeLogFromCloud(pendingDeleteId);
+                showToast("Riwayat cutting berhasil dihapus.");
+            }
+
+            pendingDeleteType = null;
+            pendingDeleteId = null;
+            closeModal('modalConfirm');
+        }
+
+        function renderPTManageList() {
+            const container = document.getElementById('ptListContainer');
+            if (!container) return;
+
+            let html = '';
+            ptList.forEach((pt, index) => {
+                const count = members.filter(m => m.ptName === pt).length;
+                if (editingPTIndex === index) {
+                    html += `
+                        <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border">
+                            <input type="text" id="editPTNameInput" value="${pt}" class="flex-1 border rounded px-2 py-1 text-xs focus:ring-1 focus:ring-gymRed">
+                            <button onclick="saveEditPT(${index})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs font-semibold">Simpan</button>
+                            <button onclick="cancelEditPT()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-2.5 py-1 rounded text-xs">Batal</button>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-700">${pt}</span>
+                                <span class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-semibold">${count} member</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="startEditPT(${index})" class="p-1 text-gray-500 hover:text-gymDark" title="Edit PT">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
+                                <button onclick="deletePT(${index})" class="p-1 text-gray-500 hover:text-red-600" title="Hapus PT">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            container.innerHTML = html;
+        }
+
+        async function addPT() {
+            const input = document.getElementById('newPTName');
+            if (!input) return;
+            const name = input.value.trim();
+            if (!name) {
+                showToast("Nama PT tidak boleh kosong.");
+                return;
+            }
+            if (ptList.includes(name)) {
+                showToast("Nama PT sudah ada!");
+                return;
+            }
+            const newList = [...ptList, name];
+            await savePTsToCloud(newList);
+            input.value = '';
+            renderPTManageList();
+            showToast(`PT ${name} berhasil ditambahkan.`);
+        }
+
+        function startEditPT(index) {
+            editingPTIndex = index;
+            renderPTManageList();
+        }
+
+        function cancelEditPT() {
+            editingPTIndex = null;
+            renderPTManageList();
+        }
+
+        async function saveEditPT(index) {
+            const input = document.getElementById('editPTNameInput');
+            if (!input) return;
+            const newName = input.value.trim();
+            if (!newName) {
+                showToast("Nama PT tidak boleh kosong.");
+                return;
+            }
+            const oldName = ptList[index];
+            if (newName !== oldName && ptList.includes(newName)) {
+                showToast("Nama PT sudah dipakai.");
+                return;
+            }
+            const newList = [...ptList];
+            newList[index] = newName;
+            
+            for (const m of members) {
+                if (m.ptName === oldName) {
+                    m.ptName = newName;
+                    await saveMemberToCloud(m);
+                }
+            }
+
+            editingPTIndex = null;
+            await savePTsToCloud(newList);
+            renderPTManageList();
+            showToast("Nama PT berhasil diperbarui.");
+        }
+
+        async function deletePT(index) {
+            const ptName = ptList[index];
+            const hasMembers = members.some(m => m.ptName === ptName);
+            if (hasMembers) {
+                showToast(`Gagal: Masih ada member terdaftar pada PT ${ptName}!`);
+                return;
+            }
+            const newList = ptList.filter((_, i) => i !== index);
+            await savePTsToCloud(newList);
+            renderPTManageList();
+            showToast(`PT ${ptName} berhasil dihapus.`);
+        }
+
+        function openMemberLogsModal(memberId) {
+            const member = members.find(m => String(m.id) === String(memberId));
+            if (!member) return;
+
+            const titleEl = document.getElementById('memberLogsTitle');
+            const statsEl = document.getElementById('memberLogsStats');
+            const tbody = document.getElementById('memberLogsTableBody');
+
+            if (titleEl) titleEl.innerText = `Riwayat Cutting: ${member.name}`;
+            if (statsEl) statsEl.innerText = `PT: ${member.ptName} • Total Paket: ${member.totalSessions} | Sisa: ${Math.max(0, member.totalSessions - member.sessionsUsed)} Sesi`;
+
+            const memberLogs = logs.filter(l => l.memberName === member.name && l.ptName === member.ptName);
+            memberLogs.sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
+
+            if (memberLogs.length === 0) {
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-400 italic">Belum ada riwayat cutting untuk member ini.</td></tr>`;
+            } else {
+                let html = '';
+                memberLogs.forEach(l => {
+                    html += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-2.5 px-3 font-medium">${l.date}</td>
+                            <td class="py-2.5 px-3 text-gray-500">${l.time}</td>
+                            <td class="py-2.5 px-3 font-semibold">${l.ptName}</td>
+                            <td class="py-2.5 px-3 text-gymRed font-bold">-${l.amountCut} Sesi</td>
+                            <td class="py-2.5 px-3 text-gray-600">Sisa ${l.sisaSesi}</td>
+                            <td class="py-2.5 px-3 text-gray-500 italic">${l.notes || '-'}</td>
+                        </tr>
+                    `;
+                });
+                if (tbody) tbody.innerHTML = html;
+            }
+
+            openModal('modalMemberLogs');
+        }
+
+        function openGoogleSheetsModal() {
+            const input = document.getElementById('googleSheetsUrlInput');
+            const savedUrl = HARDCODED_GOOGLE_SHEETS_URL || localStorage.getItem('google_sheets_url') || '';
+            if (input) input.value = savedUrl;
+
+            const statusEl = document.getElementById('googleSheetsStatus');
+            if (statusEl) {
+                statusEl.innerHTML = savedUrl 
+                    ? `<span class="text-green-700 font-semibold">✓ Terhubung ke: ${savedUrl.slice(0, 40)}...</span>` 
+                    : `<span class="text-amber-600">⚠ Belum Diatur</span>`;
+            }
+            openModal('modalGoogleSheets');
+        }
+
+        function openChangePinModal() {
+            if (!activeUser) {
+                showToast("Silakan login terlebih dahulu.");
+                return;
+            }
+            const userDisplay = document.getElementById('changePinUserDisplay');
+            if (userDisplay) {
+                userDisplay.value = `${activeUser.name} (${activeUser.role.toUpperCase()})`;
+            }
+            document.getElementById('formChangePin')?.reset();
+            openModal('modalChangePin');
+        }
+
+        async function handleChangePin(e) {
+            e.preventDefault();
+            if (!activeUser) return;
+
+            const oldPin = document.getElementById('oldPinInput').value.trim();
+            const newPin = document.getElementById('newPinInput').value.trim();
+            const confirmPin = document.getElementById('confirmNewPinInput').value.trim();
+
+            const currentPin = getUserPin(activeUser.name);
+
+            if (oldPin !== currentPin && !(activeUser.name === 'Admin' && oldPin === 'admin')) {
+                showToast("PIN Lama salah!");
+                return;
+            }
+
+            if (!newPin) {
+                showToast("PIN Baru tidak boleh kosong!");
+                return;
+            }
+
+            if (newPin !== confirmPin) {
+                showToast("Konfirmasi PIN Baru tidak cocok!");
+                return;
+            }
+
+            const updatedPins = { ...userPins, [activeUser.name]: newPin };
+            await saveUserPinsToCloud(updatedPins);
+
+            closeModal('modalChangePin');
+            document.getElementById('formChangePin')?.reset();
+            showToast(`PIN untuk ${activeUser.name} berhasil diperbarui!`);
+        }
+
+        function handleSaveGoogleSheetsUrl(e) {
+            e.preventDefault();
+            const url = document.getElementById('googleSheetsUrlInput')?.value.trim() || '';
+            localStorage.setItem('google_sheets_url', url);
+            closeModal('modalGoogleSheets');
+            showToast("URL Google Sheets berhasil disimpan!");
+        }
+
+        function openFirebaseModal() {
+            const textarea = document.getElementById('firebaseConfigInput');
+            if (textarea) {
+                textarea.value = JSON.stringify(firebaseConfig, null, 2);
+            }
+            openModal('modalFirebase');
+        }
+
+        function handleSaveFirebaseConfig(e) {
+            e.preventDefault();
+            const rawVal = document.getElementById('firebaseConfigInput')?.value.trim() || '';
+            try {
+                let clean = rawVal.replace(/\u00a0/g, ' ').replace(/[“”]/g, '"');
+                let parsed = null;
+
+                if (clean.includes('{')) {
+                    const jsonSubstring = clean.substring(clean.indexOf('{'), clean.lastIndexOf('}') + 1);
+                    const fixedJsonStr = jsonSubstring.replace(/([{,]\s*)([a-zA-Z0-9_$]+)\s*:/g, '$1"$2":');
+                    parsed = JSON.parse(fixedJsonStr);
+                } else {
+                    parsed = JSON.parse(clean);
+                }
+
+                if (parsed && parsed.projectId) {
+                    firebaseConfig = parsed;
+                    localStorage.setItem('firebase_custom_config', JSON.stringify(parsed));
+                    closeModal('modalFirebase');
+                    showToast("Firebase Config disimpan. Menghubungkan...");
+                    initFirebaseOrLocal();
+                } else {
+                    throw new Error("Project ID tidak ditemukan.");
+                }
+            } catch(err) {
+                showToast("Format Firebase Config tidak valid! Periksa kembali JSON Anda.");
+            }
+        }
+
+        function openAddMemberModal() {
+            const ptSelect = document.getElementById('memberPT');
+            if (ptSelect) {
+                const isPT = activeUser && activeUser.role === 'pt';
+                if (isPT) {
+                    ptSelect.innerHTML = `<option value="${activeUser.name}">${activeUser.name}</option>`;
+                    ptSelect.value = activeUser.name;
+                    ptSelect.disabled = true;
+                } else {
+                    ptSelect.disabled = false;
+                    ptSelect.innerHTML = ptList.map(pt => `<option value="${pt}">${pt}</option>`).join('');
+                    if (selectedPT !== 'Semua PT') ptSelect.value = selectedPT;
+                }
+            }
+            document.getElementById('formAddMember')?.reset();
+            openModal('modalAddMember');
+        }
+
+        function openEditMemberModal(memberId) {
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa edit member.");
+                return;
+            }
+            const member = members.find(m => String(m.id) === String(memberId));
+            if (!member) return;
+
+            document.getElementById('editMemberId').value = member.id;
+            document.getElementById('editMemberName').value = member.name;
+            document.getElementById('editMemberPhone').value = member.phone || '';
+            
+            const ptSelect = document.getElementById('editMemberPT');
+            if (ptSelect) {
+                ptSelect.innerHTML = ptList.map(pt => `<option value="${pt}" ${pt === member.ptName ? 'selected' : ''}>${pt}</option>`).join('');
+            }
+
+            document.getElementById('editMemberTotalSessions').value = member.totalSessions;
+            document.getElementById('editMemberUsedSessions').value = member.sessionsUsed;
+            openModal('modalEditMember');
+        }
+
+        function openEditLogModal(logId) {
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa edit log.");
+                return;
+            }
+            const log = logs.find(l => String(l.id) === String(logId));
+            if (!log) return;
+
+            document.getElementById('editLogId').value = log.id;
+            document.getElementById('editLogDate').value = log.date;
+            document.getElementById('editLogTime').value = log.time;
+            document.getElementById('editLogNotes').value = log.notes || '';
+            openModal('modalEditLog');
         }
 
         function confirmDelete(type, id) {
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa menghapus data.");
+                return;
+            }
             pendingDeleteType = type;
             pendingDeleteId = id;
 
@@ -1206,294 +2059,21 @@
             openModal('modalConfirm');
         }
 
-        async function executeConfirmDelete() {
-            if (!pendingDeleteId) return;
-
-            if (pendingDeleteType === 'member') {
-                await removeMemberFromCloud(pendingDeleteId);
-                showToast("Member berhasil dihapus.");
-            } else if (pendingDeleteType === 'log') {
-                const log = logs.find(l => String(l.id) === String(pendingDeleteId));
-                if (log) {
-                    const member = members.find(m => m.name === log.memberName && m.ptName === log.ptName);
-                    if (member) {
-                        member.sessionsUsed = Math.max(0, member.sessionsUsed - Number(log.amountCut || 1));
-                        await saveMemberToCloud(member);
-                    }
-                    await removeLogFromCloud(log.id);
-                    showToast("Riwayat dihapus & saldo sesi dikembalikan!");
-                }
-            }
-
-            closeModal('modalConfirm');
-            pendingDeleteType = null;
-            pendingDeleteId = null;
-        }
-
-        // PT Management
         function openManagePTModal() {
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa mengelola PT.");
+                return;
+            }
             editingPTIndex = null;
             renderPTManageList();
             openModal('modalManagePT');
         }
 
-        function renderPTManageList() {
-            const container = document.getElementById('ptListContainer');
-            if (!container) return;
-
-            let html = '';
-            ptList.forEach((pt, index) => {
-                const count = members.filter(m => m.ptName === pt).length;
-                if (editingPTIndex === index) {
-                    html += `
-                        <div class="flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gymRed gap-2">
-                            <input type="text" id="editPTInput_${index}" value="${pt}" class="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-gymRed focus:outline-none">
-                            <button onclick="saveEditPT(${index})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs font-semibold">Simpan</button>
-                            <button onclick="cancelEditPT()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded text-xs font-semibold">Batal</button>
-                        </div>
-                    `;
-                } else {
-                    html += `
-                        <div class="flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-                            <div>
-                                <span class="font-bold text-xs text-gymDark">${pt}</span>
-                                <span class="text-[11px] text-gray-400 ml-1.5">(${count} member)</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <button onclick="startEditPT(${index})" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2.5 py-1 rounded font-medium transition">Edit</button>
-                                <button onclick="deletePT(${index})" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2.5 py-1 rounded font-medium transition">Hapus</button>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-
-            container.innerHTML = html;
-        }
-
-        async function addPT() {
-            const input = document.getElementById('newPTName');
-            const val = input ? input.value.trim() : '';
-            if (val && !ptList.includes(val)) {
-                ptList.push(val);
-                await savePTsToCloud(ptList);
-                input.value = '';
-                renderPTManageList();
-                showToast(`PT ${val} ditambahkan.`);
-            }
-        }
-
-        function startEditPT(index) {
-            editingPTIndex = index;
-            renderPTManageList();
-        }
-
-        function cancelEditPT() {
-            editingPTIndex = null;
-            renderPTManageList();
-        }
-
-        async function saveEditPT(index) {
-            const input = document.getElementById(`editPTInput_${index}`);
-            const newName = input ? input.value.trim() : '';
-            if (!newName) return;
-
-            const oldName = ptList[index];
-            ptList[index] = newName;
-
-            // Update member PT names
-            members.forEach(m => {
-                if (m.ptName === oldName) {
-                    m.ptName = newName;
-                    saveMemberToCloud(m);
-                }
-            });
-
-            if (selectedPT === oldName) selectedPT = newName;
-            editingPTIndex = null;
-
-            await savePTsToCloud(ptList);
-            renderPTManageList();
-            showToast("Nama PT diperbarui!");
-        }
-
-        async function deletePT(index) {
-            const ptName = ptList[index];
-            const memberCount = members.filter(m => m.ptName === ptName).length;
-            if (memberCount > 0) {
-                showToast(`Tidak bisa menghapus PT ${ptName} karena masih memiliki ${memberCount} member.`);
-                return;
-            }
-
-            ptList.splice(index, 1);
-            if (selectedPT === ptName) selectedPT = 'Semua PT';
-
-            await savePTsToCloud(ptList);
-            renderPTManageList();
-            showToast(`PT ${ptName} dihapus.`);
-        }
-
-        // Member Logs Detail Modal
-        function openMemberLogsModal(memberId) {
-            const member = members.find(m => String(m.id) === String(memberId));
-            if (!member) return;
-
-            const titleEl = document.getElementById('memberLogsTitle');
-            const statsEl = document.getElementById('memberLogsStats');
-            const tbody = document.getElementById('memberLogsTableBody');
-
-            if (titleEl) titleEl.innerText = `Riwayat Cutting: ${member.name}`;
-            const memberLogs = logs.filter(l => l.memberName === member.name && l.ptName === member.ptName);
-            memberLogs.sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
-
-            const totalCut = memberLogs.reduce((acc, curr) => acc + Number(curr.amountCut || 1), 0);
-            if (statsEl) statsEl.innerText = `PT: ${member.ptName} | Total Sesi Dipotong: ${totalCut} Sesi (${memberLogs.length} Transaksi)`;
-
-            if (memberLogs.length === 0) {
-                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-400 italic">Belum ada riwayat cutting untuk member ini.</td></tr>`;
-            } else {
-                let html = '';
-                memberLogs.forEach(l => {
-                    html += `
-                        <tr class="hover:bg-gray-50">
-                            <td class="py-2.5 px-3 font-medium">${l.date}</td>
-                            <td class="py-2.5 px-3 text-gray-500">${l.time}</td>
-                            <td class="py-2.5 px-3 text-gray-700">${l.ptName}</td>
-                            <td class="py-2.5 px-3 font-bold text-gymRed">-${l.amountCut} Sesi</td>
-                            <td class="py-2.5 px-3 text-gray-600">Sisa ${l.sisaSesi}</td>
-                            <td class="py-2.5 px-3 text-gray-500 italic max-w-xs truncate">${l.notes || '-'}</td>
-                        </tr>
-                    `;
-                });
-                if (tbody) tbody.innerHTML = html;
-            }
-
-            openModal('modalMemberLogs');
-        }
-
-        // Google Sheets & Cloud Config
-        function openGoogleSheetsModal() {
-            const savedUrl = localStorage.getItem('google_sheets_url') || '';
-            const inputEl = document.getElementById('googleSheetsUrlInput');
-            if (inputEl) inputEl.value = savedUrl;
-
-            const statusEl = document.getElementById('googleSheetsStatus');
-            if (statusEl) {
-                if (savedUrl) {
-                    statusEl.innerHTML = `<span class="text-emerald-600 font-bold">✓ Terhubung ke Google Sheets</span>`;
-                } else {
-                    statusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Belum Terhubung (Masukkan URL Web App)</span>`;
-                }
-            }
-            openModal('modalGoogleSheets');
-        }
-
-        function handleSaveGoogleSheetsUrl(e) {
-            if (e && e.preventDefault) e.preventDefault();
-            const inputEl = document.getElementById('googleSheetsUrlInput');
-            const url = inputEl ? inputEl.value.trim() : '';
-            if (url) {
-                localStorage.setItem('google_sheets_url', url);
-                closeModal('modalGoogleSheets');
-                showToast("Google Sheets berhasil terhubung!");
-            }
-        }
-
-        function openFirebaseModal() {
-            const savedConfig = localStorage.getItem('firebase_custom_config') || '';
-            const textarea = document.getElementById('firebaseConfigInput');
-            if (textarea) {
-                try {
-                    textarea.value = savedConfig ? JSON.stringify(JSON.parse(savedConfig), null, 2) : '';
-                } catch(e) {
-                    textarea.value = savedConfig;
-                }
-            }
-
-            const connStatusEl = document.getElementById('firebaseConnectionStatus');
-            if (connStatusEl) {
-                if (db) {
-                    connStatusEl.innerHTML = `<span class="text-emerald-600 font-bold">✓ Terhubung ke Cloud Real-time Database</span>`;
-                } else if (savedConfig) {
-                    connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Mencoba terhubung ke Firebase...</span>`;
-                } else {
-                    connStatusEl.innerHTML = `<span class="text-amber-600 font-bold">⚠ Belum Diatur (Gunakan Firebase Config)</span>`;
-                }
-            }
-
-            openModal('modalFirebase');
-        }
-
-        // Auto-converter smart parser untuk format Firebase Console / JavaScript / JSON
-        function parseFirebaseConfigInput(rawVal) {
-            if (!rawVal) return null;
-            
-            // Normalize non-breaking spaces (\u00a0), zero-width spaces, and quotes
-            let input = rawVal
-                .replace(/[\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\u200b-\u200d\ufeff]/g, ' ')
-                .replace(/[“”]/g, '"')
-                .replace(/[‘’]/g, "'")
-                .trim();
-            
-            // 1. Coba parse JSON murni
-            try {
-                return JSON.parse(input);
-            } catch(e) {}
-
-            // 2. Ambil isi di dalam kurung kurawal { ... } jika disalin beserta 'const firebaseConfig ='
-            const firstBrace = input.indexOf('{');
-            const lastBrace = input.lastIndexOf('}');
-            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-                input = input.substring(firstBrace, lastBrace + 1);
-            }
-
-            // 3. Konversi format Objek JS (key tanpa tanda kutip) ke JSON valid
-            let cleaned = input
-                .replace(/([{,]\s*)([a-zA-Z0-9_$]+)\s*:/g, '$1"$2":') // Quote unquoted keys (apiKey: -> "apiKey":)
-                .replace(/'/g, '"')                                  // Single quote to double quote
-                .replace(/,\s*([}\]])/g, '$1');                      // Hapus koma gantung di akhir
-
-            try {
-                return JSON.parse(cleaned);
-            } catch(e) {}
-
-            // 4. Evaluator aman berbasis Objek JavaScript
-            try {
-                const parsed = (new Function(`return (${input})`))();
-                if (parsed && typeof parsed === 'object' && (parsed.projectId || parsed.apiKey)) {
-                    return parsed;
-                }
-            } catch(e) {}
-
-            return null;
-        }
-
-        function handleSaveFirebaseConfig(e) {
-            if (e && e.preventDefault) e.preventDefault();
-            const textarea = document.getElementById('firebaseConfigInput');
-            const val = textarea ? textarea.value.trim() : '';
-
-            if (!val) {
-                localStorage.removeItem('firebase_custom_config');
-                showToast("Real-time config dihapus. Kembali ke mode Offline.");
-                closeModal('modalFirebase');
-                setTimeout(() => location.reload(), 1000);
-                return;
-            }
-
-            const configObj = parseFirebaseConfigInput(val);
-            if (configObj && (configObj.projectId || configObj.apiKey)) {
-                localStorage.setItem('firebase_custom_config', JSON.stringify(configObj));
-                closeModal('modalFirebase');
-                showToast("Konfigurasi Real-time Cloud berhasil disimpan!");
-                setTimeout(() => location.reload(), 800);
-            } else {
-                showToast("Format Firebase Config tidak valid! Salin ulang dari Firebase Console.");
-            }
-        }
-
-        // Export Excel
         function exportToExcel() {
+            if (activeUser && activeUser.role !== 'admin') {
+                showToast("Akses Ditolak: Hanya Admin yang bisa export Excel.");
+                return;
+            }
             if (logs.length === 0 && members.length === 0) {
                 showToast("Belum ada data untuk diexport!");
                 return;
@@ -1503,6 +2083,7 @@
 
             const memberData = members.map(m => ({
                 'Nama Member': m.name,
+                'Nomor WhatsApp': m.phone || '-',
                 'Personal Trainer': m.ptName,
                 'Total Paket Sesi': m.totalSessions,
                 'Sesi Terpakai': m.sessionsUsed,
@@ -1567,6 +2148,8 @@
         }
 
         function setupEventListeners() {
+            document.getElementById('formLogin')?.addEventListener('submit', handleLoginSubmit);
+            document.getElementById('formChangePin')?.addEventListener('submit', handleChangePin);
             document.getElementById('formAddMember')?.addEventListener('submit', handleAddMember);
             document.getElementById('formEditMember')?.addEventListener('submit', handleEditMember);
             document.getElementById('formCutCustom')?.addEventListener('submit', handleCutCustom);
@@ -1580,27 +2163,32 @@
         }
 
         // Bind Window Exports
+        window.logoutUser = logoutUser;
+        window.openChangePinModal = openChangePinModal;
+        window.openApprovalsModal = openApprovalsModal;
+        window.approveRequest = approveRequest;
+        window.rejectRequest = rejectRequest;
         window.selectPT = selectPT;
+        window.renderMembers = renderMembers;
+        window.renderLogs = renderLogs;
         window.cutOneSession = cutOneSession;
         window.openCutCustomModal = openCutCustomModal;
         window.openAddMemberModal = openAddMemberModal;
         window.openEditMemberModal = openEditMemberModal;
         window.openEditLogModal = openEditLogModal;
-        window.confirmDelete = confirmDelete;
         window.openManagePTModal = openManagePTModal;
+        window.openMemberLogsModal = openMemberLogsModal;
+        window.openGoogleSheetsModal = openGoogleSheetsModal;
+        window.openFirebaseModal = openFirebaseModal;
+        window.confirmDelete = confirmDelete;
+        window.exportToExcel = exportToExcel;
+        window.toggleDateSort = toggleDateSort;
+        window.resetDateFilter = resetDateFilter;
         window.addPT = addPT;
         window.startEditPT = startEditPT;
         window.cancelEditPT = cancelEditPT;
         window.saveEditPT = saveEditPT;
         window.deletePT = deletePT;
-        window.openMemberLogsModal = openMemberLogsModal;
-        window.openGoogleSheetsModal = openGoogleSheetsModal;
-        window.openFirebaseModal = openFirebaseModal;
-        window.exportToExcel = exportToExcel;
-        window.toggleDateSort = toggleDateSort;
-        window.resetDateFilter = resetDateFilter;
-        window.renderMembers = renderMembers;
-        window.renderLogs = renderLogs;
         window.closeModal = closeModal;
     </script>
 </body>

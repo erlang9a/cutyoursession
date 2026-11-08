@@ -925,6 +925,7 @@
             const isPT = activeUser && activeUser.role === 'pt';
             const isAdmin = activeUser && activeUser.role === 'admin';
             const isHeadCoach = activeUser && activeUser.role === 'head_coach';
+            const canCut = activeUser && activeUser.role !== 'head_coach';
 
             const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
@@ -993,7 +994,7 @@
                         statusBg = 'bg-yellow-100 text-yellow-700';
                     }
 
-                    const cutBtnRow = isHeadCoach ? '' : (
+                    const cutBtnRow = !canCut ? '' : (
                         sisa === 0
                         ? `<button disabled class="bg-gray-200 text-gray-400 cursor-not-allowed px-3 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 shadow-none">
                                 <span>Habis</span>
@@ -1085,7 +1086,7 @@
                     statusBg = 'bg-yellow-100 text-yellow-700';
                 }
 
-                const cutBtnGrid = isHeadCoach ? '' : (
+                const cutBtnGrid = !canCut ? '' : (
                     sisa === 0
                     ? `<button disabled class="w-full bg-gray-200 text-gray-400 cursor-not-allowed py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 mt-1 shadow-none">
                             <span>Cut Sesi (Habis)</span>
@@ -1181,6 +1182,7 @@
             const selectEl = document.getElementById('loginUserSelect');
             if (!selectEl) return;
             let options = `<option value="Head Coach">Head Coach</option>`;
+            options += `<option value="Customer Service">Customer Service</option>`;
             ptList.forEach(pt => {
                 options += `<option value="${pt}">Trainer: ${pt}</option>`;
             });
@@ -1210,6 +1212,8 @@
                 }
                 if (userChoice === 'Head Coach') {
                     role = 'head_coach';
+                } else if (userChoice === 'Customer Service') {
+                    role = 'cs';
                 } else {
                     role = 'pt';
                 }
@@ -1225,6 +1229,7 @@
             if (!userPins || !userPins[userChoice]) {
                 if (userChoice === 'Admin' && (enteredPin === 'admin' || enteredPin === '1234')) isPinValid = true;
                 if (userChoice === 'Head Coach' && (enteredPin === 'headcoach' || enteredPin === '1234')) isPinValid = true;
+                if (userChoice === 'Customer Service' && (enteredPin === 'cs' || enteredPin === '1234')) isPinValid = true;
                 if (enteredPin === '1234') isPinValid = true;
             }
 
@@ -1296,6 +1301,9 @@
                 } else if (activeUser.role === 'head_coach') {
                     roleDisp.innerText = 'HEAD COACH';
                     roleDisp.className = 'bg-blue-600 text-[10px] px-2 py-0.5 rounded font-semibold text-white';
+                } else if (activeUser.role === 'cs') {
+                    roleDisp.innerText = 'CUST SERVICE';
+                    roleDisp.className = 'bg-fuchsia-600 text-[10px] px-2 py-0.5 rounded font-semibold text-white';
                 } else {
                     roleDisp.innerText = 'TRAINER';
                     roleDisp.className = 'bg-emerald-600 text-[10px] px-2 py-0.5 rounded font-semibold text-white';
@@ -1309,7 +1317,7 @@
                 if (btnApprovals) btnApprovals.classList.remove('hidden');
                 if (btnOpenBookingModal) btnOpenBookingModal.classList.remove('hidden');
                 if (btnSectionAddBooking) btnSectionAddBooking.classList.remove('hidden');
-            } else if (activeUser.role === 'head_coach') {
+            } else if (activeUser.role === 'head_coach' || activeUser.role === 'cs') {
                 if (btnManagePT) btnManagePT.classList.add('hidden');
                 if (btnAddMember) btnAddMember.classList.add('hidden');
                 if (btnExportExcel) btnExportExcel.classList.remove('hidden');
@@ -2405,23 +2413,61 @@
                 showToast("Nama PT tersebut sudah ada.");
                 return;
             }
+            
+            // 1. Update PT List
             ptList[index] = newVal;
+            
+            // 2. Update PIN Keys
             if (userPins[oldVal]) {
                 userPins[newVal] = userPins[oldVal];
                 delete userPins[oldVal];
                 await saveUserPinsToCloud(userPins);
             }
-            members.forEach(async (m) => {
-                if (m.ptName === oldVal) {
-                    m.ptName = newVal;
-                    await saveMemberToCloud(m);
+            
+            // 3. Update Members associated with PT
+            for (let i = 0; i < members.length; i++) {
+                if (members[i].ptName === oldVal) {
+                    members[i].ptName = newVal;
+                    await saveMemberToCloud(members[i]);
                 }
-            });
+            }
+
+            // 4. Update Logs associated with PT
+            for (let i = 0; i < logs.length; i++) {
+                if (logs[i].ptName === oldVal) {
+                    logs[i].ptName = newVal;
+                    await saveLogToCloud({...logs[i], action: 'update'});
+                }
+            }
+
+            // 5. Update Bookings associated with PT
+            for (let i = 0; i < bookings.length; i++) {
+                if (bookings[i].ptName === oldVal) {
+                    bookings[i].ptName = newVal;
+                    await saveBookingToCloud(bookings[i]);
+                }
+            }
+
+            // 6. Update Approvals associated with PT
+            for (let i = 0; i < approvals.length; i++) {
+                if (approvals[i].ptName === oldVal) {
+                    approvals[i].ptName = newVal;
+                    await saveApprovalToCloud(approvals[i]);
+                }
+            }
+
             editingPTIndex = null;
             await savePTsToCloud(ptList);
+            
+            // Perbarui navigasi tab jika tab aktif adalah PT yang sedang diubah
+            if (selectedPT === oldVal) {
+                selectedPT = newVal;
+            }
+
             renderPTManageList();
             renderPTTabs();
             renderMembers();
+            renderLogs();
             updateLoginUserSelect();
             showToast(`Nama PT berhasil diubah ke ${newVal}!`);
         }
@@ -2442,7 +2488,7 @@
 
         function exportToExcel() {
             if (!activeUser || activeUser.role === 'pt') {
-                showToast("Akses Ditolak: Hanya Admin / Head Coach yang dapat mengunduh Excel.");
+                showToast("Akses Ditolak: Hanya Manajemen/Staff khusus yang dapat mengunduh Excel.");
                 return;
             }
             if (typeof XLSX === 'undefined') {

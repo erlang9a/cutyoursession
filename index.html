@@ -97,13 +97,13 @@
                     </svg>
                     + Booking Sesi
                 </button>
-                <!-- Kelola PT -->
+                <!-- Kelola Akun -->
                 <button id="btnManagePT" onclick="openManagePTModal()" class="bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
-                    Kelola PT
+                    Kelola Akun
                 </button>
                 <!-- Tambah Member -->
                 <button id="btnAddMember" onclick="openAddMemberModal()" class="bg-gymRed hover:bg-gymRedHover text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5">
@@ -157,10 +157,13 @@
                 <!-- Search Box & Switcher Mode Tampilan -->
                 <div class="flex items-center gap-2 w-full sm:w-auto">
                     <div class="relative flex-1 sm:w-64">
-                        <input type="text" id="searchInput" oninput="renderMembers()" placeholder="Cari nama member..." class="w-full bg-white border border-gray-300 text-xs rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-gymRed focus:border-transparent shadow-sm">
+                        <input type="text" id="searchInput" oninput="renderMembers()" placeholder="Cari nama atau WA..." class="w-full bg-white border border-gray-300 text-xs rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:ring-2 focus:ring-gymRed focus:border-transparent shadow-sm">
                         <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
+                        <button id="btnClearSearch" onclick="clearSearch()" class="hidden absolute right-2.5 top-2.5 text-gray-400 hover:text-gymRed transition p-0.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
                     </div>
                     <!-- Mode Tampilan Switcher (Grid & Row) -->
                     <div class="bg-white border border-gray-200 rounded-xl p-1 flex items-center gap-1 shadow-sm flex-shrink-0">
@@ -180,7 +183,7 @@
             </div>
 
             <!-- List Member Container -->
-            <div id="memberListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[550px] overflow-y-auto pr-1.5">
+            <div id="memberListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[550px] overflow-y-auto pr-1.5 transition-all">
                 <!-- Member Rows / Cards akan di-render di sini -->
             </div>
         </div>
@@ -499,8 +502,8 @@
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
                 <div>
-                    <h3 class="font-bold text-lg text-gymDark">Kelola Daftar PT</h3>
-                    <p class="text-xs text-gray-500">Tambah PT baru atau ubah nama PT yang ada</p>
+                    <h3 class="font-bold text-lg text-gymDark">Kelola Akun & PT</h3>
+                    <p class="text-xs text-gray-500">Tambah PT baru, ubah nama, atau pantau PIN akun.</p>
                 </div>
                 <button onclick="closeModal('modalManagePT')" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -754,6 +757,7 @@
         let userPins = {};
         let editingPTIndex = null;
         let memberViewMode = localStorage.getItem('member_view_mode') || 'grid';
+        let isMemberListHidden = false;
 
         let activeUser = null;
         let currentLoginMode = 'staff';
@@ -808,6 +812,20 @@
                 return userPins[userName];
             }
             return '1234';
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            if (input) {
+                input.value = '';
+                renderMembers();
+            }
+        }
+
+        function toggleMemberList() {
+            isMemberListHidden = !isMemberListHidden;
+            renderStatusFilterTabs();
+            renderMembers();
         }
 
         function setMemberViewMode(mode) {
@@ -887,18 +905,25 @@
             }).length;
 
             container.innerHTML = `
-                <button onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${statusFilter === 'all' ? 'bg-gymDark text-white shadow-sm font-bold' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}">
-                    <span>Semua Member</span>
-                    <span class="text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'all' ? 'bg-gray-700 text-white font-extrabold' : 'bg-gray-100 text-gray-600'}">${countAll}</span>
-                </button>
-                <button onclick="setStatusFilter('near_empty')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${statusFilter === 'near_empty' ? 'bg-amber-500 text-white shadow-sm font-bold' : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'}">
-                    <span>⚡ Hampir Habis</span>
-                    <span class="text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'near_empty' ? 'bg-amber-700 text-white font-extrabold' : 'bg-amber-100 text-amber-800'}">${countNearEmpty}</span>
-                </button>
-                <button onclick="setStatusFilter('empty')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${statusFilter === 'empty' ? 'bg-gymRed text-white shadow-sm font-bold' : 'bg-white text-gymRed border border-red-200 hover:bg-red-50'}">
-                    <span>🚫 Sudah Habis</span>
-                    <span class="text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'empty' ? 'bg-red-800 text-white font-extrabold' : 'bg-red-100 text-gymRed'}">${countEmpty}</span>
-                </button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${statusFilter === 'all' ? 'bg-gymDark text-white shadow-sm font-bold' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}">
+                        <span>Semua Member</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'all' ? 'bg-gray-700 text-white font-extrabold' : 'bg-gray-100 text-gray-600'}">${countAll}</span>
+                    </button>
+                    <button onclick="setStatusFilter('near_empty')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${statusFilter === 'near_empty' ? 'bg-amber-500 text-white shadow-sm font-bold' : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'}">
+                        <span>⚡ Hampir Habis</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'near_empty' ? 'bg-amber-700 text-white font-extrabold' : 'bg-amber-100 text-amber-800'}">${countNearEmpty}</span>
+                    </button>
+                    <button onclick="setStatusFilter('empty')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${statusFilter === 'empty' ? 'bg-gymRed text-white shadow-sm font-bold' : 'bg-white text-gymRed border border-red-200 hover:bg-red-50'}">
+                        <span>🚫 Sudah Habis</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'empty' ? 'bg-red-800 text-white font-extrabold' : 'bg-red-100 text-gymRed'}">${countEmpty}</span>
+                    </button>
+                </div>
+                <div class="ml-auto">
+                    <button onclick="toggleMemberList()" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-white text-gray-500 border border-gray-200 hover:bg-gray-100 shadow-sm whitespace-nowrap">
+                        ${isMemberListHidden ? '👁️ Tampilkan' : '🙈 Sembunyikan'}
+                    </button>
+                </div>
             `;
         }
 
@@ -928,11 +953,25 @@
             const canCut = activeUser && activeUser.role !== 'head_coach';
 
             const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const btnClearSearch = document.getElementById('btnClearSearch');
+            
+            if (btnClearSearch) {
+                if (query) btnClearSearch.classList.remove('hidden');
+                else btnClearSearch.classList.add('hidden');
+            }
 
             let filtered = members.filter(m => {
                 if (isPT && m.ptName !== activeUser.name) return false;
                 if (!isPT && selectedPT !== 'Semua PT' && m.ptName !== selectedPT) return false;
-                if (query && !m.name.toLowerCase().includes(query) && !m.ptName.toLowerCase().includes(query)) return false;
+                
+                // Cari berdasarkan Nama, PT, atau Nomor Telepon
+                if (query && 
+                    !m.name.toLowerCase().includes(query) && 
+                    !m.ptName.toLowerCase().includes(query) &&
+                    !(m.phone && m.phone.toLowerCase().includes(query))
+                ) {
+                    return false;
+                }
 
                 const total = Number(m.totalSessions) || 1;
                 const used = Number(m.sessionsUsed) || 0;
@@ -952,6 +991,8 @@
                         Tidak ada data member yang ditemukan.
                     </div>
                 `;
+                if (isMemberListHidden) container.classList.add('hidden');
+                else container.classList.remove('hidden');
                 return;
             }
 
@@ -968,8 +1009,15 @@
                 }
             }
 
+            // Handle Hide Member List Logic
+            if (isMemberListHidden) {
+                container.classList.add('hidden');
+            } else {
+                container.classList.remove('hidden');
+            }
+
             if (memberViewMode === 'row') {
-                container.className = 'grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[550px] overflow-y-auto pr-1.5';
+                container.className = 'grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[550px] overflow-y-auto pr-1.5' + (isMemberListHidden ? ' hidden' : '');
                 container.innerHTML = filtered.map(m => {
                     const total = Number(m.totalSessions) || 1;
                     const used = Number(m.sessionsUsed) || 0;
@@ -1061,7 +1109,7 @@
             }
 
             // Grid Mode (Default)
-            container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[550px] overflow-y-auto pr-1.5';
+            container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[550px] overflow-y-auto pr-1.5' + (isMemberListHidden ? ' hidden' : '');
             container.innerHTML = filtered.map(m => {
                 const total = Number(m.totalSessions) || 1;
                 const used = Number(m.sessionsUsed) || 0;
@@ -1154,6 +1202,8 @@
         window.selectPTTab = selectPTTab;
         window.setMemberViewMode = setMemberViewMode;
         window.setStatusFilter = setStatusFilter;
+        window.clearSearch = clearSearch;
+        window.toggleMemberList = toggleMemberList;
 
         function switchLoginMode(mode) {
             currentLoginMode = mode;
@@ -1676,15 +1726,34 @@
                 }
             });
 
-            // Admin PIN Status info line
+            // Akun Non-PT (Admin, Head Coach, CS) PIN Status info line
             const adminPin = getUserPin('Admin');
+            const hcPin = getUserPin('Head Coach');
+            const csPin = getUserPin('Customer Service');
+            
             html += `
-                <div class="mt-3 border-t pt-2 flex items-center justify-between text-xs bg-red-50 p-2 rounded-lg border border-red-100">
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-gymRed">🔑 Akun Admin</span>
-                        <span class="bg-red-200 text-red-900 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">PIN: ${adminPin}</span>
+                <div class="mt-3 border-t pt-2 space-y-2">
+                    <div class="flex items-center justify-between text-xs bg-red-50 p-2 rounded-lg border border-red-100">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-gymRed">🔑 Admin</span>
+                            <span class="bg-red-200 text-red-900 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">PIN: ${adminPin}</span>
+                        </div>
+                        <button onclick="resetUserPin('Admin')" class="text-red-700 font-bold hover:underline text-xs">Reset</button>
                     </div>
-                    <button onclick="resetUserPin('Admin')" class="text-red-700 font-bold hover:underline text-xs">Reset PIN Admin</button>
+                    <div class="flex items-center justify-between text-xs bg-blue-50 p-2 rounded-lg border border-blue-100">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-blue-700">🔑 Head Coach</span>
+                            <span class="bg-blue-200 text-blue-900 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">PIN: ${hcPin}</span>
+                        </div>
+                        <button onclick="resetUserPin('Head Coach')" class="text-blue-700 font-bold hover:underline text-xs">Reset</button>
+                    </div>
+                    <div class="flex items-center justify-between text-xs bg-fuchsia-50 p-2 rounded-lg border border-fuchsia-100">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-fuchsia-700">🔑 Cust Service</span>
+                            <span class="bg-fuchsia-200 text-fuchsia-900 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">PIN: ${csPin}</span>
+                        </div>
+                        <button onclick="resetUserPin('Customer Service')" class="text-fuchsia-700 font-bold hover:underline text-xs">Reset</button>
+                    </div>
                 </div>
             `;
 

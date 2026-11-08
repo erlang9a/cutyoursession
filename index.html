@@ -1410,18 +1410,22 @@
                 try {
                     const app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
-                    auth = getAuth(app);
                     
-                    onAuthStateChanged(auth, (user) => {
-                        if (user) {
-                            currentUser = user;
-                            subscribeCloudData();
-                        } else {
-                            signInAnonymously(auth).catch((err) => {
-                                console.warn("Firebase Auth Anonymous failed:", err);
-                            });
-                        }
-                    });
+                    // 1. Langsung eksekusi sinkronisasi database (Bypass Auth blocker untuk Test Mode)
+                    subscribeCloudData();
+
+                    // 2. Auth berjalan statis di background (opsional)
+                    try {
+                        auth = getAuth(app);
+                        onAuthStateChanged(auth, (user) => {
+                            if (!user) {
+                                signInAnonymously(auth).catch((err) => {
+                                    console.warn("Info Auth Anonim (Bisa diabaikan):", err.message);
+                                });
+                            }
+                        });
+                    } catch(authErr) {}
+
                 } catch(e) {
                     console.warn("Firebase init error:", e);
                     if (statusTextEl) statusTextEl.innerHTML = `Offline / Local`;

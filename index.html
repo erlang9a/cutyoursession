@@ -278,7 +278,12 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-600 uppercase mb-1">PIN / Password</label>
-                    <input type="password" id="loginPinInput" required placeholder="Masukkan PIN" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                    <div class="relative">
+                        <input type="password" id="loginPinInput" required placeholder="Masukkan PIN" class="w-full border border-gray-300 rounded-lg p-2.5 pr-10 text-xs focus:ring-2 focus:ring-gymRed focus:outline-none">
+                        <button type="button" onclick="togglePasswordVisibility('loginPinInput', 'loginEyeIcon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gymRed transition">
+                            <svg id="loginEyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                    </div>
                     <p class="text-[10px] text-gray-400 mt-1">* PIN Default untuk semua akun: <span class="font-bold text-gray-600">1234</span> (atau <span class="font-bold text-gray-600">admin</span> / <span class="font-bold text-gray-600">headcoach</span>)</p>
                     <p class="text-[10px] text-amber-600 font-medium mt-1 flex items-center gap-1">💡 Lupa PIN? Hubungi Admin untuk reset PIN.</p>
                 </div>
@@ -706,7 +711,7 @@
     </div>
 
     <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-gymDark text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-medium translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
+    <div id="toast" class="fixed bottom-5 right-5 bg-gymDark text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-medium translate-y-20 opacity-0 transition-all duration-300 z-[100] flex items-center gap-2">
         <span id="toastMsg">Notifikasi</span>
     </div>
 
@@ -1275,9 +1280,17 @@
             // Validasi PIN secara presisi
             let isPinValid = (enteredPin === correctPin);
 
-            // Kata kunci alias default hanya berlaku jika PIN belum pernah diubah/dikustomisasi sama sekali
+            // Perbaikan Login Admin & Kembalikan ke Default Password secara paksa jika master PIN ('admin' / '1234') dimasukkan
+            if (userChoice === 'Admin' && (enteredPin === 'admin' || enteredPin === '1234')) {
+                isPinValid = true;
+                if (userPins && userPins['Admin']) {
+                    delete userPins['Admin']; // Reset pin Admin ke default di database
+                    saveUserPinsToCloud(userPins);
+                }
+            }
+
+            // Kata kunci alias default untuk akun lain (jika belum pernah diubah)
             if (!userPins || !userPins[userChoice]) {
-                if (userChoice === 'Admin' && (enteredPin === 'admin' || enteredPin === '1234')) isPinValid = true;
                 if (userChoice === 'Head Coach' && (enteredPin === 'headcoach' || enteredPin === '1234')) isPinValid = true;
                 if (userChoice === 'Customer Service' && (enteredPin === 'cs' || enteredPin === '1234')) isPinValid = true;
                 if (enteredPin === '1234') isPinValid = true;
@@ -1915,6 +1928,20 @@
             const arrow = document.getElementById('thDateArrow');
             if (arrow) arrow.innerText = dateSortAsc ? '▼' : '▲';
             renderLogs();
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input || !icon) return;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
+            }
         }
 
         // ==================== APPROVAL SYSTEM ====================
@@ -2841,6 +2868,7 @@
         window.exportToExcel = exportToExcel;
         window.formatWAUrl = formatWAUrl;
         window.removeMemberFromCloud = removeMemberFromCloud;
+        window.togglePasswordVisibility = togglePasswordVisibility;
     </script>
 </body>
 </html>

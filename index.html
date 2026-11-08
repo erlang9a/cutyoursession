@@ -770,6 +770,8 @@
         let isFirstMembersSnapshot = true;
         let isFirstLogsSnapshot = true;
         let isFirstPTsSnapshot = true;
+        let isFirstPinsSnapshot = true;
+        let isCloudSubscribed = false;
         let pendingDeleteType = null;
         let pendingDeleteId = null;
 
@@ -1417,7 +1419,6 @@
                         } else {
                             signInAnonymously(auth).catch((err) => {
                                 console.warn("Firebase Auth Anonymous failed:", err);
-                                subscribeCloudData();
                             });
                         }
                     });
@@ -2272,7 +2273,8 @@
 
         // ==================== REALTIME CLOUD LISTENERS ====================
         function subscribeCloudData() {
-            if (!db) return;
+            if (!db || isCloudSubscribed) return;
+            isCloudSubscribed = true;
 
             const statusTextEl = document.getElementById('cloudStatusText');
             if (statusTextEl) statusTextEl.innerText = "Cloud Online";
@@ -2369,6 +2371,11 @@
                 isFirstPTsSnapshot = false;
                 renderPTTabs();
                 updateLoginUserSelect();
+                
+                const manageModal = document.getElementById('modalManagePT');
+                if (manageModal && !manageModal.classList.contains('hidden')) {
+                    renderPTManageList();
+                }
             }, (err) => console.warn("PT config listen error:", err));
 
             // Listen Approvals Collection
@@ -2400,7 +2407,7 @@
                         userPins = data.pins;
                         localStorage.setItem('user_pins', JSON.stringify(userPins));
                     }
-                } else {
+                } else if (isFirstPinsSnapshot) {
                     const savedLocal = localStorage.getItem('user_pins');
                     if (savedLocal) {
                         try {
@@ -2411,6 +2418,12 @@
                             }
                         } catch(e) {}
                     }
+                }
+                isFirstPinsSnapshot = false;
+                
+                const manageModal = document.getElementById('modalManagePT');
+                if (manageModal && !manageModal.classList.contains('hidden')) {
+                    renderPTManageList();
                 }
             }, (err) => console.warn("Pins listen error:", err));
         }

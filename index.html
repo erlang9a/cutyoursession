@@ -2277,37 +2277,73 @@
             const statusTextEl = document.getElementById('cloudStatusText');
             if (statusTextEl) statusTextEl.innerText = "Cloud Online";
 
-            // Listen Members Collection (Universal Collection Path)
+            // Listen Members Collection (Universal Collection Path with Auto-Backup Protection)
             onSnapshot(collection(db, 'members'), (snapshot) => {
                 const cloudMembers = [];
                 snapshot.forEach(doc => cloudMembers.push(doc.data()));
-                if (!snapshot.empty || isFirstMembersSnapshot) {
-                    if (snapshot.empty && isFirstMembersSnapshot) {
-                        defaultMembers.forEach(m => saveMemberToCloud(m));
+                
+                if (!snapshot.empty) {
+                    members = cloudMembers;
+                    localStorage.setItem('pt_members', JSON.stringify(members));
+                } else if (isFirstMembersSnapshot) {
+                    // Cloud kosong saat pertama kali konek: Cek memori lokal HP/Laptop
+                    const savedLocal = localStorage.getItem('pt_members');
+                    if (savedLocal) {
+                        try {
+                            const parsed = JSON.parse(savedLocal);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                members = parsed;
+                                // Upload otomatis data lokal yang ada ke Cloud Firebase
+                                members.forEach(m => saveMemberToCloud(m));
+                            } else {
+                                members = [...defaultMembers];
+                                defaultMembers.forEach(m => saveMemberToCloud(m));
+                            }
+                        } catch(e) {
+                            members = [...defaultMembers];
+                            defaultMembers.forEach(m => saveMemberToCloud(m));
+                        }
                     } else {
-                        members = cloudMembers;
-                        localStorage.setItem('pt_members', JSON.stringify(members));
-                        renderMembers();
-                        renderPTTabs();
+                        members = [...defaultMembers];
+                        defaultMembers.forEach(m => saveMemberToCloud(m));
                     }
-                    isFirstMembersSnapshot = false;
                 }
+                isFirstMembersSnapshot = false;
+                renderMembers();
+                renderPTTabs();
             }, (err) => console.warn("Members listen error:", err));
 
-            // Listen Logs Collection (Universal Collection Path)
+            // Listen Logs Collection (Universal Collection Path with Auto-Backup Protection)
             onSnapshot(collection(db, 'logs'), (snapshot) => {
                 const cloudLogs = [];
                 snapshot.forEach(doc => cloudLogs.push(doc.data()));
-                if (!snapshot.empty || isFirstLogsSnapshot) {
-                    if (snapshot.empty && isFirstLogsSnapshot) {
-                        defaultLogs.forEach(l => saveLogToCloud(l));
+                
+                if (!snapshot.empty) {
+                    logs = cloudLogs;
+                    localStorage.setItem('pt_logs', JSON.stringify(logs));
+                } else if (isFirstLogsSnapshot) {
+                    const savedLocal = localStorage.getItem('pt_logs');
+                    if (savedLocal) {
+                        try {
+                            const parsed = JSON.parse(savedLocal);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                logs = parsed;
+                                logs.forEach(l => saveLogToCloud(l));
+                            } else {
+                                logs = [...defaultLogs];
+                                defaultLogs.forEach(l => saveLogToCloud(l));
+                            }
+                        } catch(e) {
+                            logs = [...defaultLogs];
+                            defaultLogs.forEach(l => saveLogToCloud(l));
+                        }
                     } else {
-                        logs = cloudLogs;
-                        localStorage.setItem('pt_logs', JSON.stringify(logs));
-                        renderLogs();
+                        logs = [...defaultLogs];
+                        defaultLogs.forEach(l => saveLogToCloud(l));
                     }
-                    isFirstLogsSnapshot = false;
                 }
+                isFirstLogsSnapshot = false;
+                renderLogs();
             }, (err) => console.warn("Logs listen error:", err));
 
             // Listen PT Config
@@ -2317,10 +2353,22 @@
                     if (data && Array.isArray(data.list) && data.list.length > 0) {
                         ptList = data.list;
                         localStorage.setItem('pt_list', JSON.stringify(ptList));
-                        renderPTTabs();
-                        updateLoginUserSelect();
+                    }
+                } else if (isFirstPTsSnapshot) {
+                    const savedLocal = localStorage.getItem('pt_list');
+                    if (savedLocal) {
+                        try {
+                            const parsed = JSON.parse(savedLocal);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                ptList = parsed;
+                                savePTsToCloud(ptList);
+                            }
+                        } catch(e) {}
                     }
                 }
+                isFirstPTsSnapshot = false;
+                renderPTTabs();
+                updateLoginUserSelect();
             }, (err) => console.warn("PT config listen error:", err));
 
             // Listen Approvals Collection
@@ -2351,6 +2399,17 @@
                     if (data && data.pins) {
                         userPins = data.pins;
                         localStorage.setItem('user_pins', JSON.stringify(userPins));
+                    }
+                } else {
+                    const savedLocal = localStorage.getItem('user_pins');
+                    if (savedLocal) {
+                        try {
+                            const parsed = JSON.parse(savedLocal);
+                            if (Object.keys(parsed).length > 0) {
+                                userPins = parsed;
+                                saveUserPinsToCloud(userPins);
+                            }
+                        } catch(e) {}
                     }
                 }
             }, (err) => console.warn("Pins listen error:", err));

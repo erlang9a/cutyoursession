@@ -45,7 +45,6 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight">Gym Cutting Session</h1>
-                    <p class="text-xs text-gray-400">Manajemen PT & Cutting Sesi Member</p>
                 </div>
             </div>
 
@@ -154,7 +153,6 @@
                     <h2 class="text-xl font-bold text-gymDark flex items-center gap-2">
                         Daftar Member <span id="activePTTitle" class="text-sm font-semibold text-gymRed bg-red-50 px-2.5 py-1 rounded-md">Semua PT</span>
                     </h2>
-                    <p class="text-xs text-gray-500">Member diurutkan otomatis A-Z. Klik "Cut Sesi" untuk memasukkan tanggal & jam pemotongan sesi.</p>
                 </div>
                 <!-- Search Box & Switcher Mode Tampilan -->
                 <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -182,7 +180,7 @@
             </div>
 
             <!-- List Member Container -->
-            <div id="memberListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div id="memberListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[550px] overflow-y-auto pr-1.5">
                 <!-- Member Rows / Cards akan di-render di sini -->
             </div>
         </div>
@@ -204,12 +202,13 @@
             <!-- Toolbar Filter Periode Tanggal -->
             <div class="bg-gray-50/70 px-5 py-3 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div class="flex flex-wrap items-center gap-2">
-                    <span class="font-bold text-gray-600">Periode Tanggal:</span>
-                    <input type="date" id="dateFromInput" onchange="renderLogs()" class="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-gymRed">
-                    <span class="text-gray-400">s/d</span>
-                    <input type="date" id="dateToInput" onchange="renderLogs()" class="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-gymRed">
+                    <span class="font-bold text-gray-600">Filter Tanggal:</span>
+                    <input type="date" id="singleDateInput" onchange="renderLogs()" class="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-gymRed">
+                    <button onclick="setFilterDateToday()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold px-2.5 py-1.5 rounded-lg transition">
+                        Hari Ini
+                    </button>
                     <button onclick="resetDateFilter()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-2.5 py-1.5 rounded-lg transition">
-                        Reset Tanggal
+                        Semua
                     </button>
                 </div>
                 <div class="text-gray-400 text-[11px] italic">
@@ -218,9 +217,9 @@
             </div>
 
             <!-- Tabel Riwayat -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
+            <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                <table class="w-full text-left text-xs relative">
+                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100 sticky top-0 z-10 shadow-sm">
                         <tr>
                             <th id="thDateSort" onclick="toggleDateSort()" class="py-3 px-4 cursor-pointer hover:bg-gray-100 transition select-none flex items-center gap-1 text-gymRed">
                                 <span>TANGGAL</span>
@@ -840,12 +839,16 @@
             const isPT = activeUser && activeUser.role === 'pt';
             const totalCount = members.filter(m => !isPT || m.ptName === activeUser.name).length;
 
-            let html = `
-                <button onclick="selectPTTab('Semua PT')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 ${selectedPT === 'Semua PT' ? 'bg-gymRed text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                    <span>Semua PT</span>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded-full ${selectedPT === 'Semua PT' ? 'bg-white text-gymRed font-extrabold' : 'bg-gray-200 text-gray-600'}">${totalCount}</span>
-                </button>
-            `;
+            let html = '';
+            
+            if (!isPT) {
+                html += `
+                    <button onclick="selectPTTab('Semua PT')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 ${selectedPT === 'Semua PT' ? 'bg-gymRed text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                        <span>Semua PT</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded-full ${selectedPT === 'Semua PT' ? 'bg-white text-gymRed font-extrabold' : 'bg-gray-200 text-gray-600'}">${totalCount}</span>
+                    </button>
+                `;
+            }
 
             ptList.forEach(pt => {
                 if (isPT && pt !== activeUser.name) return;
@@ -965,7 +968,7 @@
             }
 
             if (memberViewMode === 'row') {
-                container.className = 'grid grid-cols-1 md:grid-cols-2 gap-2.5';
+                container.className = 'grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[550px] overflow-y-auto pr-1.5';
                 container.innerHTML = filtered.map(m => {
                     const total = Number(m.totalSessions) || 1;
                     const used = Number(m.sessionsUsed) || 0;
@@ -1030,7 +1033,7 @@
                                         <button onclick="openEditMemberModal('${m.id}')" class="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition" title="Edit">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                         </button>
-                                        <button onclick="removeMemberFromCloud('${m.id}')" class="p-1.5 bg-red-50 hover:bg-red-100 text-gymRed rounded-lg transition" title="Hapus">
+                                        <button onclick="confirmDelete('member', '${m.id}')" class="p-1.5 bg-red-50 hover:bg-red-100 text-gymRed rounded-lg transition" title="Hapus">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                         </button>
                                     ` : ''}
@@ -1057,7 +1060,7 @@
             }
 
             // Grid Mode (Default)
-            container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
+            container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[550px] overflow-y-auto pr-1.5';
             container.innerHTML = filtered.map(m => {
                 const total = Number(m.totalSessions) || 1;
                 const used = Number(m.sessionsUsed) || 0;
@@ -1120,7 +1123,7 @@
                                         <button onclick="openEditMemberModal('${m.id}')" class="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition" title="Edit">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                         </button>
-                                        <button onclick="removeMemberFromCloud('${m.id}')" class="p-1.5 bg-red-50 hover:bg-red-100 text-gymRed rounded-lg transition" title="Hapus">
+                                        <button onclick="confirmDelete('member', '${m.id}')" class="p-1.5 bg-red-50 hover:bg-red-100 text-gymRed rounded-lg transition" title="Hapus">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                         </button>
                                     ` : ''}
@@ -1728,19 +1731,26 @@
             
             const titleEl = document.getElementById('confirmTitle');
             const msgEl = document.getElementById('confirmMessage');
-            if (titleEl) titleEl.innerText = type === 'log' ? 'Hapus Log Riwayat?' : 'Hapus Data?';
-            if (msgEl) msgEl.innerText = type === 'log' ? 'Log transaksi ini akan dihapus permanen dari sistem & Google Sheets.' : 'Data ini akan dihapus permanen.';
+            if (titleEl) titleEl.innerText = type === 'log' ? 'Hapus Log Riwayat?' : 'Hapus Data Member?';
+            if (msgEl) msgEl.innerText = type === 'log' ? 'Log transaksi ini akan dihapus permanen dari sistem & Google Sheets.' : 'Seluruh data member ini akan dihapus permanen.';
             
             openModal('modalConfirm');
         }
 
-        async function executeConfirmDelete() {
+        function executeConfirmDelete() {
             if (!pendingDeleteType || !pendingDeleteId) return;
 
             if (pendingDeleteType === 'log') {
-                await removeLogFromCloud(pendingDeleteId);
-                renderLogs();
-                showToast("Log riwayat berhasil dihapus.");
+                removeLogFromCloud(pendingDeleteId).then(() => {
+                    renderLogs();
+                    showToast("Log riwayat berhasil dihapus.");
+                });
+            } else if (pendingDeleteType === 'member') {
+                removeMemberFromCloud(pendingDeleteId).then(() => {
+                    renderMembers();
+                    renderPTTabs();
+                    showToast("Data member berhasil dihapus.");
+                });
             }
 
             closeModal('modalConfirm');
@@ -1752,8 +1762,7 @@
             const tbody = document.getElementById('logTableBody');
             const statsBadge = document.getElementById('logStatsBadge');
             const sectionTitle = document.getElementById('logSectionTitle');
-            const dateFromInput = document.getElementById('dateFromInput');
-            const dateToInput = document.getElementById('dateToInput');
+            const singleDateInput = document.getElementById('singleDateInput');
             if (!tbody) return;
 
             if (sectionTitle) sectionTitle.innerText = `Riwayat Cutting Sesi (${selectedPT})`;
@@ -1766,8 +1775,7 @@
                 if (!isPT && selectedPT !== 'Semua PT' && l.ptName !== selectedPT) return false;
 
                 const logIsoDate = dmyToISO(l.date);
-                if (dateFromInput?.value && logIsoDate < dateFromInput.value) return false;
-                if (dateToInput?.value && logIsoDate > dateToInput.value) return false;
+                if (singleDateInput?.value && logIsoDate !== singleDateInput.value) return false;
 
                 return true;
             });
@@ -1780,7 +1788,7 @@
 
             if (statsBadge) {
                 const totalCutCount = filtered.reduce((acc, curr) => acc + (Number(curr.amountCut) || 1), 0);
-                statsBadge.innerHTML = `<span>Total Transaksi: <b>${filtered.length}</b></span> • <span>Sesi Dipotong: <b>${totalCutCount}</b></span>`;
+                statsBadge.innerHTML = `<span>Total Sesi Dipotong: <b>${totalCutCount}</b></span>`;
             }
 
             if (filtered.length === 0) {
@@ -1807,11 +1815,21 @@
             `).join('');
         }
 
+        function setFilterDateToday() {
+            const singleDateInput = document.getElementById('singleDateInput');
+            if (singleDateInput) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                singleDateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+            renderLogs();
+        }
+
         function resetDateFilter() {
-            const dateFromInput = document.getElementById('dateFromInput');
-            const dateToInput = document.getElementById('dateToInput');
-            if (dateFromInput) dateFromInput.value = '';
-            if (dateToInput) dateToInput.value = '';
+            const singleDateInput = document.getElementById('singleDateInput');
+            if (singleDateInput) singleDateInput.value = '';
             renderLogs();
         }
 
@@ -2702,10 +2720,12 @@
         window.executeConfirmDelete = executeConfirmDelete;
         window.approveRequest = approveRequest;
         window.rejectRequest = rejectRequest;
+        window.setFilterDateToday = setFilterDateToday;
         window.resetDateFilter = resetDateFilter;
         window.toggleDateSort = toggleDateSort;
         window.exportToExcel = exportToExcel;
         window.formatWAUrl = formatWAUrl;
+        window.removeMemberFromCloud = removeMemberFromCloud;
     </script>
 </body>
 </html>

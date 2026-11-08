@@ -2130,7 +2130,7 @@
 
             if (db) {
                 try {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', String(bookingObj.id)), bookingObj);
+                    await setDoc(doc(db, 'bookings', String(bookingObj.id)), bookingObj);
                 } catch(e) { console.warn("Error saving booking to cloud:", e); }
             }
             renderBookings();
@@ -2142,7 +2142,7 @@
 
             if (db) {
                 try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', String(bookingId)));
+                    await deleteDoc(doc(db, 'bookings', String(bookingId)));
                 } catch(e) { console.warn("Error removing booking from cloud:", e); }
             }
             renderBookings();
@@ -2277,33 +2277,41 @@
             const statusTextEl = document.getElementById('cloudStatusText');
             if (statusTextEl) statusTextEl.innerText = "Cloud Online";
 
-            // Listen Members Collection
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'members'), (snapshot) => {
+            // Listen Members Collection (Universal Collection Path)
+            onSnapshot(collection(db, 'members'), (snapshot) => {
                 const cloudMembers = [];
                 snapshot.forEach(doc => cloudMembers.push(doc.data()));
-                if (cloudMembers.length > 0 || isFirstMembersSnapshot) {
-                    members = cloudMembers.length > 0 ? cloudMembers : defaultMembers;
-                    localStorage.setItem('pt_members', JSON.stringify(members));
-                    renderMembers();
-                    renderPTTabs();
+                if (!snapshot.empty || isFirstMembersSnapshot) {
+                    if (snapshot.empty && isFirstMembersSnapshot) {
+                        defaultMembers.forEach(m => saveMemberToCloud(m));
+                    } else {
+                        members = cloudMembers;
+                        localStorage.setItem('pt_members', JSON.stringify(members));
+                        renderMembers();
+                        renderPTTabs();
+                    }
                     isFirstMembersSnapshot = false;
                 }
             }, (err) => console.warn("Members listen error:", err));
 
-            // Listen Logs Collection
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'logs'), (snapshot) => {
+            // Listen Logs Collection (Universal Collection Path)
+            onSnapshot(collection(db, 'logs'), (snapshot) => {
                 const cloudLogs = [];
                 snapshot.forEach(doc => cloudLogs.push(doc.data()));
-                if (cloudLogs.length > 0 || isFirstLogsSnapshot) {
-                    logs = cloudLogs.length > 0 ? cloudLogs : defaultLogs;
-                    localStorage.setItem('pt_logs', JSON.stringify(logs));
-                    renderLogs();
+                if (!snapshot.empty || isFirstLogsSnapshot) {
+                    if (snapshot.empty && isFirstLogsSnapshot) {
+                        defaultLogs.forEach(l => saveLogToCloud(l));
+                    } else {
+                        logs = cloudLogs;
+                        localStorage.setItem('pt_logs', JSON.stringify(logs));
+                        renderLogs();
+                    }
                     isFirstLogsSnapshot = false;
                 }
             }, (err) => console.warn("Logs listen error:", err));
 
-            // Listen PT Config Collection
-            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), (snapshot) => {
+            // Listen PT Config
+            onSnapshot(doc(db, 'config', 'pts'), (snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.data();
                     if (data && Array.isArray(data.list) && data.list.length > 0) {
@@ -2316,7 +2324,7 @@
             }, (err) => console.warn("PT config listen error:", err));
 
             // Listen Approvals Collection
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'approvals'), (snapshot) => {
+            onSnapshot(collection(db, 'approvals'), (snapshot) => {
                 const cloudApprovals = [];
                 snapshot.forEach(doc => cloudApprovals.push(doc.data()));
                 approvals = cloudApprovals;
@@ -2327,7 +2335,7 @@
             }, (err) => console.warn("Approvals listen error:", err));
 
             // Listen Bookings Collection
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), (snapshot) => {
+            onSnapshot(collection(db, 'bookings'), (snapshot) => {
                 const cloudBookings = [];
                 snapshot.forEach(doc => cloudBookings.push(doc.data()));
                 bookings = cloudBookings;
@@ -2336,8 +2344,8 @@
                 checkExpiredBookings();
             }, (err) => console.warn("Bookings listen error:", err));
 
-            // Listen Pins Collection
-            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pins'), (snapshot) => {
+            // Listen Pins Config
+            onSnapshot(doc(db, 'config', 'pins'), (snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.data();
                     if (data && data.pins) {
@@ -2653,8 +2661,18 @@
             localStorage.setItem('pt_list', JSON.stringify(ptList));
             if (db) {
                 try {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'pts'), { list: ptList });
+                    await setDoc(doc(db, 'config', 'pts'), { list: ptList });
                 } catch(e) { console.warn("Error saving PTs:", e); }
+            }
+        }
+
+        async function saveUserPinsToCloud(pinsObj) {
+            userPins = pinsObj;
+            localStorage.setItem('user_pins', JSON.stringify(userPins));
+            if (db) {
+                try {
+                    await setDoc(doc(db, 'config', 'pins'), { pins: userPins });
+                } catch(e) { console.warn("Error saving user pins to cloud:", e); }
             }
         }
 
@@ -2666,7 +2684,7 @@
 
             if (db) {
                 try {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(memberObj.id)), memberObj);
+                    await setDoc(doc(db, 'members', String(memberObj.id)), memberObj);
                 } catch(e) { console.warn("Error saving member to cloud:", e); }
             }
         }
@@ -2677,7 +2695,7 @@
 
             if (db) {
                 try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(memberId)));
+                    await deleteDoc(doc(db, 'members', String(memberId)));
                 } catch(e) { console.warn("Error removing member from cloud:", e); }
             }
         }
@@ -2690,7 +2708,7 @@
 
             if (db) {
                 try {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logObj.id)), logObj);
+                    await setDoc(doc(db, 'logs', String(logObj.id)), logObj);
                 } catch(e) { console.warn("Error saving log to cloud:", e); }
             }
             syncToGoogleSheets(logObj);
@@ -2703,7 +2721,7 @@
 
             if (db) {
                 try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', String(logId)));
+                    await deleteDoc(doc(db, 'logs', String(logId)));
                 } catch(e) { console.warn("Error removing log from cloud:", e); }
             }
             if (logToDelete) {
@@ -2719,7 +2737,7 @@
 
             if (db) {
                 try {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'approvals', String(approvalObj.id)), approvalObj);
+                    await setDoc(doc(db, 'approvals', String(approvalObj.id)), approvalObj);
                 } catch(e) { console.warn("Error saving approval to cloud:", e); }
             }
             updateApprovalBadge();
@@ -2732,7 +2750,7 @@
 
             if (db) {
                 try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'approvals', String(approvalId)));
+                    await deleteDoc(doc(db, 'approvals', String(approvalId)));
                 } catch(e) { console.warn("Error removing approval from cloud:", e); }
             }
             updateApprovalBadge();
@@ -2845,7 +2863,7 @@
         window.openGoogleSheetsModal = openGoogleSheetsModal;
         window.openFirebaseModal = openFirebaseModal;
         window.handleSaveGoogleSheetsUrl = handleSaveGoogleSheetsUrl;
-        window.handleSaveFirebaseConfig = handleSaveFirebaseConfig;
+        window.saveUserPinsToCloud = saveUserPinsToCloud;
         window.logoutUser = logoutUser;
         window.resetUserPin = resetUserPin;
         window.handleChangePin = handleChangePin;

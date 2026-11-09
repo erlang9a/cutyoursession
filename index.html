@@ -205,17 +205,23 @@
             <!-- Toolbar Filter Periode Tanggal -->
             <div class="bg-gray-50/70 px-5 py-3 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div class="flex flex-wrap items-center gap-2">
-                    <span class="font-bold text-gray-600">Filter Tanggal:</span>
+                    <span class="font-bold text-gray-600">Filter Harian:</span>
                     <input type="date" id="singleDateInput" onchange="renderLogs()" class="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-gymRed">
                     <button onclick="setFilterDateToday()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold px-2.5 py-1.5 rounded-lg transition">
                         Hari Ini
                     </button>
                     <button onclick="resetDateFilter()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-2.5 py-1.5 rounded-lg transition">
-                        Semua
+                        Reset
                     </button>
                 </div>
-                <div class="text-gray-400 text-[11px] italic">
-                    * Klik judul kolom <span class="font-bold text-gray-600">Tanggal</span> untuk toggle Old-New / New-Old
+                <div class="flex items-center gap-2 flex-wrap">
+                    <select id="monthFilterInput" onchange="renderLogs()" class="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-gymDark focus:outline-none focus:ring-1 focus:ring-gymRed min-w-[130px]">
+                        <option value="">Semua Bulan</option>
+                    </select>
+                    <button id="btnExportLogExcel" onclick="exportLogToExcel()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg shadow-sm transition items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Export Excel
+                    </button>
                 </div>
             </div>
 
@@ -1344,6 +1350,7 @@
             const btnApprovals = document.getElementById('btnApprovals');
             const btnOpenBookingModal = document.getElementById('btnOpenBookingModal');
             const btnSectionAddBooking = document.getElementById('btnSectionAddBooking');
+            const btnExportLogExcel = document.getElementById('btnExportLogExcel');
 
             if (!activeUser) {
                 if (badge) badge.classList.add('hidden');
@@ -1353,6 +1360,7 @@
                 if (btnApprovals) btnApprovals.classList.add('hidden');
                 if (btnOpenBookingModal) btnOpenBookingModal.classList.add('hidden');
                 if (btnSectionAddBooking) btnSectionAddBooking.classList.add('hidden');
+                if (btnExportLogExcel) btnExportLogExcel.classList.add('hidden');
                 return;
             }
 
@@ -1397,6 +1405,18 @@
                 if (btnOpenBookingModal) btnOpenBookingModal.classList.remove('hidden');
                 if (btnSectionAddBooking) btnSectionAddBooking.style.display = '';
                 if (btnSectionAddBooking) btnSectionAddBooking.classList.remove('hidden');
+            }
+
+            if (activeUser.role === 'admin' || activeUser.role === 'head_coach' || activeUser.role === 'cs') {
+                if (btnExportLogExcel) {
+                    btnExportLogExcel.classList.remove('hidden');
+                    btnExportLogExcel.classList.add('flex');
+                }
+            } else {
+                if (btnExportLogExcel) {
+                    btnExportLogExcel.classList.add('hidden');
+                    btnExportLogExcel.classList.remove('flex');
+                }
             }
 
             updateApprovalBadge();
@@ -1853,11 +1873,52 @@
             pendingDeleteId = null;
         }
 
+        let previousMonthFilterOptions = "";
+        function populateMonthFilter(currentLogs) {
+            const monthFilter = document.getElementById('monthFilterInput');
+            if (!monthFilter) return;
+            const currentVal = monthFilter.value;
+            
+            const uniqueMonths = new Set();
+            currentLogs.forEach(l => {
+                if (l.date && l.date.includes('-')) {
+                    const parts = l.date.split('-'); // DD-MM-YYYY
+                    if (parts.length === 3) {
+                        uniqueMonths.add(`${parts[1]}-${parts[2]}`); // MM-YYYY
+                    }
+                }
+            });
+
+            const sortedMonths = Array.from(uniqueMonths).sort((a, b) => {
+                const [mA, yA] = a.split('-');
+                const [mB, yB] = b.split('-');
+                if (yA !== yB) return yB.localeCompare(yA);
+                return mB.localeCompare(mA);
+            });
+
+            let html = '<option value="">Semua Bulan</option>';
+            sortedMonths.forEach(m => {
+                const [mm, yyyy] = m.split('-');
+                const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                const monthName = monthNames[parseInt(mm, 10) - 1] || mm;
+                const label = `${monthName} ${yyyy}`;
+                html += `<option value="${m}">${label}</option>`;
+            });
+
+            if (previousMonthFilterOptions !== html) {
+                monthFilter.innerHTML = html;
+                monthFilter.value = currentVal;
+                if (!monthFilter.value && currentVal) monthFilter.value = currentVal;
+                previousMonthFilterOptions = html;
+            }
+        }
+
         function renderLogs() {
             const tbody = document.getElementById('logTableBody');
             const statsBadge = document.getElementById('logStatsBadge');
             const sectionTitle = document.getElementById('logSectionTitle');
             const singleDateInput = document.getElementById('singleDateInput');
+            const monthFilterInput = document.getElementById('monthFilterInput');
             if (!tbody) return;
 
             if (sectionTitle) sectionTitle.innerText = `Riwayat Cutting Sesi (${selectedPT})`;
@@ -1865,12 +1926,22 @@
             const isPT = activeUser && activeUser.role === 'pt';
             const isAdmin = activeUser && activeUser.role === 'admin';
 
+            populateMonthFilter(logs);
+
             let filtered = logs.filter(l => {
                 if (isPT && l.ptName !== activeUser.name) return false;
                 if (!isPT && selectedPT !== 'Semua PT' && l.ptName !== selectedPT) return false;
 
                 const logIsoDate = dmyToISO(l.date);
                 if (singleDateInput?.value && logIsoDate !== singleDateInput.value) return false;
+
+                if (monthFilterInput?.value) {
+                     const parts = (l.date || '').split('-');
+                     if (parts.length === 3) {
+                         const mmYYYY = `${parts[1]}-${parts[2]}`;
+                         if (mmYYYY !== monthFilterInput.value) return false;
+                     }
+                }
 
                 return true;
             });
@@ -1925,6 +1996,8 @@
         function resetDateFilter() {
             const singleDateInput = document.getElementById('singleDateInput');
             if (singleDateInput) singleDateInput.value = '';
+            const monthFilter = document.getElementById('monthFilterInput');
+            if (monthFilter) monthFilter.value = '';
             renderLogs();
         }
 
@@ -2677,6 +2750,98 @@
             showToast("Laporan Excel berhasil diunduh!");
         }
 
+        function exportLogToExcel() {
+            if (!activeUser || activeUser.role === 'pt') {
+                showToast("Akses Ditolak: Hanya Admin, CS, & Head Coach yang dapat mengunduh Excel.");
+                return;
+            }
+            if (typeof XLSX === 'undefined') {
+                showToast("Library SheetJS (XLSX) belum dimuat.");
+                return;
+            }
+
+            const isPT = activeUser && activeUser.role === 'pt';
+            const singleDateInput = document.getElementById('singleDateInput');
+            const monthFilterInput = document.getElementById('monthFilterInput');
+
+            let filteredLogs = logs.filter(l => {
+                if (isPT && l.ptName !== activeUser.name) return false;
+                if (!isPT && selectedPT !== 'Semua PT' && l.ptName !== selectedPT) return false;
+                
+                const logIsoDate = dmyToISO(l.date);
+                if (singleDateInput?.value && logIsoDate !== singleDateInput.value) return false;
+                
+                if (monthFilterInput?.value) {
+                     const parts = (l.date || '').split('-');
+                     if (parts.length === 3) {
+                         const mmYYYY = `${parts[1]}-${parts[2]}`;
+                         if (mmYYYY !== monthFilterInput.value) return false;
+                     }
+                }
+                return true;
+            });
+
+            if (filteredLogs.length === 0) {
+                showToast("Tidak ada data riwayat untuk diekspor pada filter ini.");
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            
+            // Group by PT Name
+            const logsByPT = {};
+            filteredLogs.forEach(l => {
+                const pt = l.ptName || 'Data Tanpa PT';
+                if (!logsByPT[pt]) logsByPT[pt] = [];
+                logsByPT[pt].push(l);
+            });
+
+            Object.keys(logsByPT).forEach(pt => {
+                const ptLogs = logsByPT[pt];
+                
+                ptLogs.sort((a, b) => {
+                    const dtA = `${dmyToISO(a.date)} ${a.time}`;
+                    const dtB = `${dmyToISO(b.date)} ${b.time}`;
+                    return dtB.localeCompare(dtA);
+                });
+
+                const logData = ptLogs.map((l, idx) => ({
+                    "No": idx + 1,
+                    "Tanggal": l.date,
+                    "Jam": l.time,
+                    "Nama Member": l.memberName,
+                    "Sesi Dipotong": l.amountCut,
+                    "Sisa Sesi Akhir": l.sisaSesi,
+                    "Catatan": l.notes || '-'
+                }));
+                
+                const ws = XLSX.utils.json_to_sheet(logData);
+                
+                ws['!cols'] = [
+                    { wch: 5 },  
+                    { wch: 12 }, 
+                    { wch: 8 },  
+                    { wch: 25 }, 
+                    { wch: 15 }, 
+                    { wch: 15 }, 
+                    { wch: 35 }  
+                ];
+
+                let sheetName = pt.substring(0, 30).replace(/[\\/?*[\]]/g, ' ');
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            });
+
+            if (wb.SheetNames.length === 0) {
+                showToast("Gagal membuat file Excel.");
+                return;
+            }
+
+            const monthStr = monthFilterInput?.value ? `_${monthFilterInput.value}` : '';
+            const filename = `Riwayat_Cutting${monthStr}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            showToast("Laporan Riwayat per-PT berhasil diunduh!");
+        }
+
         // ==================== UI & DATA UTILITIES ====================
         function openModal(id) {
             const el = document.getElementById(id);
@@ -2928,6 +3093,7 @@
         window.resetDateFilter = resetDateFilter;
         window.toggleDateSort = toggleDateSort;
         window.exportToExcel = exportToExcel;
+        window.exportLogToExcel = exportLogToExcel;
         window.formatWAUrl = formatWAUrl;
         window.removeMemberFromCloud = removeMemberFromCloud;
         window.togglePasswordVisibility = togglePasswordVisibility;

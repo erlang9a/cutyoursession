@@ -2732,16 +2732,21 @@
             const wsMembers = XLSX.utils.json_to_sheet(memberData);
             XLSX.utils.book_append_sheet(wb, wsMembers, "Daftar Member");
 
-            const logData = logs.map((l, idx) => ({
-                "No": idx + 1,
-                "Tanggal": l.date,
-                "Jam": l.time,
-                "Nama PT": l.ptName,
-                "Nama Member": l.memberName,
-                "Sesi Dipotong": l.amountCut,
-                "Sisa Sesi Akhir": l.sisaSesi,
-                "Catatan": l.notes || '-'
-            }));
+            const logData = logs.map((l, idx) => {
+                const member = members.find(m => m.name === l.memberName && m.ptName === l.ptName);
+                const phone = member && member.phone ? member.phone : '-';
+                return {
+                    "No": idx + 1,
+                    "Tanggal": l.date,
+                    "Jam": l.time,
+                    "Nama PT": l.ptName,
+                    "Nama Member": l.memberName,
+                    "Nomor WA": phone,
+                    "Sesi Dipotong": l.amountCut,
+                    "Sisa Sesi Akhir": l.sisaSesi,
+                    "Catatan": l.notes || '-'
+                };
+            });
             const wsLogs = XLSX.utils.json_to_sheet(logData);
             XLSX.utils.book_append_sheet(wb, wsLogs, "Riwayat Cutting");
 
@@ -2805,15 +2810,20 @@
                     return dtB.localeCompare(dtA);
                 });
 
-                const logData = ptLogs.map((l, idx) => ({
-                    "No": idx + 1,
-                    "Tanggal": l.date,
-                    "Jam": l.time,
-                    "Nama Member": l.memberName,
-                    "Sesi Dipotong": l.amountCut,
-                    "Sisa Sesi Akhir": l.sisaSesi,
-                    "Catatan": l.notes || '-'
-                }));
+                const logData = ptLogs.map((l, idx) => {
+                    const member = members.find(m => m.name === l.memberName && m.ptName === pt);
+                    const phone = member && member.phone ? member.phone : '-';
+                    return {
+                        "No": idx + 1,
+                        "Tanggal": l.date,
+                        "Jam": l.time,
+                        "Nama Member": l.memberName,
+                        "Nomor WA": phone,
+                        "Sesi Dipotong": l.amountCut,
+                        "Sisa Sesi Akhir": l.sisaSesi,
+                        "Catatan": l.notes || '-'
+                    };
+                });
                 
                 const ws = XLSX.utils.json_to_sheet(logData);
                 
@@ -2822,6 +2832,7 @@
                     { wch: 12 }, 
                     { wch: 8 },  
                     { wch: 25 }, 
+                    { wch: 18 }, 
                     { wch: 15 }, 
                     { wch: 15 }, 
                     { wch: 35 }  

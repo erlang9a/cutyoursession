@@ -2150,6 +2150,9 @@
                 return;
             }
 
+            // Mengurutkan nama member sesuai abjad A-Z
+            availableMembers.sort((a, b) => a.name.localeCompare(b.name));
+
             selectEl.innerHTML = availableMembers.map(m => `
                 <option value="${m.id}">${m.name} (PT: ${m.ptName} • Sisa: ${Math.max(0, m.totalSessions - m.sessionsUsed)} Sesi)</option>
             `).join('');
@@ -2237,8 +2240,22 @@
 
             let filtered = bookings.filter(b => {
                 if (b.status !== 'scheduled') return false;
-                if (isPT && b.ptName !== activeUser.name) return false;
-                if (!isPT && selectedPT !== 'Semua PT' && b.ptName !== selectedPT) return false;
+                
+                // Standarisasi string untuk mencegah bug spasi tersembunyi
+                const pt = String(b.ptName || '').trim();
+                const currentTab = String(selectedPT || '').trim();
+                const activeName = String(activeUser?.name || '').trim();
+
+                // 1. Jika yg login adalah PT, HANYA melihat jadwalnya sendiri
+                if (isPT && pt !== activeName) {
+                    return false;
+                }
+                
+                // 2. Jika yg login Admin/CS/HC, lihat HANYA sesuai tab PT yang dipilih
+                if (!isPT && currentTab !== 'Semua PT' && pt !== currentTab) {
+                    return false;
+                }
+
                 return true;
             });
 

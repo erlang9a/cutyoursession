@@ -1842,7 +1842,7 @@
             const titleEl = document.getElementById('confirmTitle');
             const msgEl = document.getElementById('confirmMessage');
             if (titleEl) titleEl.innerText = type === 'log' ? 'Hapus Log Riwayat?' : 'Hapus Data Member?';
-            if (msgEl) msgEl.innerText = type === 'log' ? 'Log transaksi ini akan dihapus permanen dari sistem & Google Sheets.' : 'Seluruh data member ini akan dihapus permanen.';
+            if (msgEl) msgEl.innerText = type === 'log' ? 'Log dihapus permanen & saldo sesi member akan otomatis dikembalikan.' : 'Seluruh data member ini akan dihapus permanen.';
             
             openModal('modalConfirm');
         }
@@ -1853,7 +1853,8 @@
             if (pendingDeleteType === 'log') {
                 removeLogFromCloud(pendingDeleteId).then(() => {
                     renderLogs();
-                    showToast("Log riwayat berhasil dihapus.");
+                    renderMembers(); // Update tampilan daftar member setelah saldo dikembalikan
+                    showToast("Log riwayat dihapus & saldo sesi dikembalikan.");
                 });
             } else if (pendingDeleteType === 'member') {
                 removeMemberFromCloud(pendingDeleteId).then(() => {
@@ -2942,6 +2943,15 @@
 
         async function removeLogFromCloud(logId) {
             const logToDelete = logs.find(l => String(l.id) === String(logId));
+            if (!logToDelete) return;
+
+            // Kembalikan (refund) saldo sesi member jika log dihapus
+            const memberToRestore = members.find(m => m.name === logToDelete.memberName && m.ptName === logToDelete.ptName);
+            if (memberToRestore) {
+                memberToRestore.sessionsUsed = Math.max(0, memberToRestore.sessionsUsed - (Number(logToDelete.amountCut) || 1));
+                await saveMemberToCloud(memberToRestore);
+            }
+
             logs = logs.filter(l => String(l.id) !== String(logId));
             localStorage.setItem('pt_logs', JSON.stringify(logs));
 

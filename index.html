@@ -290,8 +290,8 @@
                             <svg id="loginEyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                         </button>
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1">* PIN Default untuk semua akun: <span class="font-bold text-gray-600">1234</span> (atau <span class="font-bold text-gray-600">admin</span> / <span class="font-bold text-gray-600">headcoach</span>)</p>
-                    <p class="text-[10px] text-amber-600 font-medium mt-1 flex items-center gap-1">💡 Lupa PIN? Hubungi Admin untuk reset PIN.</p>
+                    <p class="text-[10px] text-gray-400 mt-1">* PIN Default awal untuk akun baru: <span class="font-bold text-gray-600">1234</span></p>
+                    <p class="text-[10px] text-amber-600 font-medium mt-1 flex items-center gap-1">💡 Lupa PIN? Hubungi Admin untuk reset melalui menu Kelola Akun.</p>
                 </div>
                 <button type="submit" class="w-full bg-gymRed hover:bg-gymRedHover text-white py-2.5 rounded-lg text-xs font-semibold shadow transition flex items-center justify-center gap-2">
                     🔑 Masuk ke Aplikasi
@@ -1288,20 +1288,15 @@
             // Validasi PIN secara presisi
             let isPinValid = (enteredPin === correctPin);
 
-            // Perbaikan Login Admin & Kembalikan ke Default Password secara paksa jika master PIN ('admin' / '1234') dimasukkan
-            if (userChoice === 'Admin' && (enteredPin === 'admin' || enteredPin === '1234')) {
+            // KODE DARURAT RAHASIA: KHUSUS ADMIN JIKA LUPA PIN
+            // Ketik "admin-recovery" untuk me-reset PIN admin ke 1234
+            if (userChoice === 'Admin' && enteredPin === 'admin-recovery') {
                 isPinValid = true;
                 if (userPins && userPins['Admin']) {
                     delete userPins['Admin']; // Reset pin Admin ke default di database
                     saveUserPinsToCloud(userPins);
                 }
-            }
-
-            // Kata kunci alias default untuk akun lain (jika belum pernah diubah)
-            if (!userPins || !userPins[userChoice]) {
-                if (userChoice === 'Head Coach' && (enteredPin === 'headcoach' || enteredPin === '1234')) isPinValid = true;
-                if (userChoice === 'Customer Service' && (enteredPin === 'cs' || enteredPin === '1234')) isPinValid = true;
-                if (enteredPin === '1234') isPinValid = true;
+                showToast("Berhasil: PIN Admin telah direset ke 1234.");
             }
 
             if (!isPinValid) {
@@ -2554,12 +2549,6 @@
 
             const currentPin = getUserPin(activeUser.name);
             let isOldPinCorrect = (oldPin === currentPin);
-
-            if (!userPins || !userPins[activeUser.name]) {
-                if (activeUser.name === 'Admin' && (oldPin === 'admin' || oldPin === '1234')) isOldPinCorrect = true;
-                if (activeUser.name === 'Head Coach' && (oldPin === 'headcoach' || oldPin === '1234')) isOldPinCorrect = true;
-                if (oldPin === '1234') isOldPinCorrect = true;
-            }
 
             if (!isOldPinCorrect) {
                 showToast("PIN Lama yang Anda masukkan salah!");

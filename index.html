@@ -814,207 +814,124 @@
             return dmyDate;
         }
 
-        function formatWAUrl(phone) {
+        function formatWAUrl(phone, memberName = '', sisa = null) {
             if (!phone) return '#';
             let clean = String(phone).replace(/\D/g, '');
             if (clean.startsWith('0')) {
                 clean = '62' + clean.slice(1);
+            }
+
+            let message = '';
+            const safeName = String(memberName || '').trim();
+            const canUsePromoTemplate = activeUser && (activeUser.role === 'admin' || activeUser.role === 'head_coach' || activeUser.role === 'cs');
+            if (canUsePromoTemplate && sisa !== null && safeName) {
+                if (sisa === 0) {
+                    message = `Halo Kak ${safeName}, mau konfirmasi apa benar sesi PT-nya sudah habis? Jika Ya, saya bisa bantu untuk proses perpanjangan paketnya biar body goal Kakak menuju resolusi 2027 tetap aman. Kebetulan Kakak mendapatkan kuota spesial promo. Ditunggu konfirmasinya ya Kak, Terima Kasih.`;
+                } else if (sisa > 0 && sisa <= 4) {
+                    message = `Hai Kak ${safeName}! Sesi PT Kakak sudah hampir habis. Pas banget, lagi ada promo spesial perpanjangan paket buat Kakak biar latihannya nggak terputus. Tertarik ambil promonya sekalian Kak?`;
+                }
+            }
+
+            if (message) {
+                return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
             }
             return `https://wa.me/${clean}`;
         }
 
         function getUserPin(userName) {
             if (userPins && userPins[userName]) {
-                return userPins[userName];
+                return String(userPins[userName]);
             }
             return '1234';
         }
 
-        function clearSearch() {
-            const input = document.getElementById('searchInput');
-            if (input) {
-                input.value = '';
-                renderMembers();
+        function renderPTTabs() {
+            const container = document.getElementById('ptTabsContainer');
+            const activePTTitle = document.getElementById('activePTTitle');
+            if (!container) return;
+
+            const isPT = activeUser && activeUser.role === 'pt';
+            if (isPT) {
+                selectedPT = activeUser.name;
             }
+
+            if (activePTTitle) {
+                activePTTitle.innerText = selectedPT;
+            }
+
+            let tabs = [];
+            if (isPT) {
+                const count = members.filter(m => m.ptName === activeUser.name).length;
+                tabs.push({ name: activeUser.name, count });
+            } else {
+                tabs.push({ name: 'Semua PT', count: members.length });
+                ptList.forEach(pt => {
+                    const count = members.filter(m => m.ptName === pt).length;
+                    tabs.push({ name: pt, count });
+                });
+            }
+
+            container.innerHTML = tabs.map(t => {
+                const isActive = selectedPT === t.name;
+                const btnClass = isActive
+                    ? 'bg-gymRed text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-sm flex items-center gap-2 transition'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition';
+                const badgeClass = isActive
+                    ? 'bg-white text-gymRed text-[10px] font-extrabold px-2 py-0.5 rounded-full'
+                    : 'bg-gray-200 text-gray-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full';
+                const safeName = t.name.replace(/'/g, "\\'");
+                return `
+                    <button onclick="selectPTTab('${safeName}')" class="${btnClass}">
+                        <span>${t.name}</span>
+                        <span class="${badgeClass}">${t.count}</span>
+                    </button>
+                `;
+            }).join('');
         }
 
-        function toggleMemberList() {
-            isMemberListHidden = !isMemberListHidden;
-            renderStatusFilterTabs();
+        function selectPTTab(ptName) {
+            if (activeUser && activeUser.role === 'pt') {
+                selectedPT = activeUser.name;
+            } else {
+                selectedPT = ptName;
+            }
+            renderPTTabs();
+            renderBookings();
             renderMembers();
+            renderLogs();
         }
 
         function setMemberViewMode(mode) {
             memberViewMode = mode;
             localStorage.setItem('member_view_mode', mode);
-            const btnGrid = document.getElementById('btnViewGrid');
-            const btnRow = document.getElementById('btnViewRow');
-            if (btnGrid && btnRow) {
-                if (mode === 'grid') {
-                    btnGrid.className = 'p-1.5 rounded-lg bg-gymRed text-white shadow-sm transition';
-                    btnRow.className = 'p-1.5 rounded-lg text-gray-500 hover:text-gymRed transition';
-                } else {
-                    btnRow.className = 'p-1.5 rounded-lg bg-gymRed text-white shadow-sm transition';
-                    btnGrid.className = 'p-1.5 rounded-lg text-gray-500 hover:text-gymRed transition';
-                }
-            }
             renderMembers();
         }
 
-        function setStatusFilter(filter) {
-            statusFilter = filter;
+        function setStatusFilter(status) {
+            statusFilter = status;
             renderMembers();
         }
 
-        function renderPTTabs() {
-            const container = document.getElementById('ptTabsContainer');
-            if (!container) return;
-
-            const isPT = activeUser && activeUser.role === 'pt';
-            const totalCount = members.filter(m => !isPT || m.ptName === activeUser.name).length;
-
-            let html = '';
-            
-            if (!isPT) {
-                html += `
-                    <button onclick="selectPTTab('Semua PT')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 ${selectedPT === 'Semua PT' ? 'bg-gymRed text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                        <span>Semua PT</span>
-                        <span class="text-[10px] px-1.5 py-0.5 rounded-full ${selectedPT === 'Semua PT' ? 'bg-white text-gymRed font-extrabold' : 'bg-gray-200 text-gray-600'}">${totalCount}</span>
-                    </button>
-                `;
-            }
-
-            ptList.forEach(pt => {
-                if (isPT && pt !== activeUser.name) return;
-                const ptCount = members.filter(m => m.ptName === pt).length;
-                const isActive = (selectedPT === pt);
-                html += `
-                    <button onclick="selectPTTab('${pt}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 ${isActive ? 'bg-gymRed text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                        <span>${pt}</span>
-                        <span class="text-[10px] px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white text-gymRed font-extrabold' : 'bg-gray-200 text-gray-600'}">${ptCount}</span>
-                    </button>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function renderStatusFilterTabs() {
-            const container = document.getElementById('statusFilterContainer');
-            if (!container) return;
-
-            const isPT = activeUser && activeUser.role === 'pt';
-            let baseMembers = members.filter(m => {
-                if (isPT && m.ptName !== activeUser.name) return false;
-                if (!isPT && selectedPT !== 'Semua PT' && m.ptName !== selectedPT) return false;
-                return true;
-            });
-
-            const countAll = baseMembers.length;
-            const countNearEmpty = baseMembers.filter(m => {
-                const sisa = Math.max(0, (Number(m.totalSessions) || 0) - (Number(m.sessionsUsed) || 0));
-                return sisa > 0 && sisa <= 4;
-            }).length;
-            const countEmpty = baseMembers.filter(m => {
-                const sisa = Math.max(0, (Number(m.totalSessions) || 0) - (Number(m.sessionsUsed) || 0));
-                return sisa === 0;
-            }).length;
-
-            container.innerHTML = `
-                <div class="flex flex-wrap items-center gap-2">
-                    <button onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${statusFilter === 'all' ? 'bg-gymDark text-white shadow-sm font-bold' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}">
-                        <span>Semua Member</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'all' ? 'bg-gray-700 text-white font-extrabold' : 'bg-gray-100 text-gray-600'}">${countAll}</span>
-                    </button>
-                    <button onclick="setStatusFilter('near_empty')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${statusFilter === 'near_empty' ? 'bg-amber-500 text-white shadow-sm font-bold' : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'}">
-                        <span>⚡ Hampir Habis</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'near_empty' ? 'bg-amber-700 text-white font-extrabold' : 'bg-amber-100 text-amber-800'}">${countNearEmpty}</span>
-                    </button>
-                    <button onclick="setStatusFilter('empty')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${statusFilter === 'empty' ? 'bg-gymRed text-white shadow-sm font-bold' : 'bg-white text-gymRed border border-red-200 hover:bg-red-50'}">
-                        <span>🚫 Sudah Habis</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === 'empty' ? 'bg-red-800 text-white font-extrabold' : 'bg-red-100 text-gymRed'}">${countEmpty}</span>
-                    </button>
-                </div>
-                <div class="ml-auto">
-                    <button onclick="toggleMemberList()" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-white text-gray-500 border border-gray-200 hover:bg-gray-100 shadow-sm whitespace-nowrap">
-                        ${isMemberListHidden ? '👁️ Tampilkan' : '🙈 Sembunyikan'}
-                    </button>
-                </div>
-            `;
-        }
-
-        function selectPTTab(ptName) {
-            selectedPT = ptName;
-            const titleEl = document.getElementById('activePTTitle');
-            if (titleEl) titleEl.innerText = ptName;
-            renderPTTabs();
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
             renderMembers();
-            renderLogs();
-            renderBookings();
+        }
+
+        function toggleMemberList() {
+            isMemberListHidden = !isMemberListHidden;
+            renderMembers();
         }
 
         function renderMembers() {
             const container = document.getElementById('memberListContainer');
+            const filterContainer = document.getElementById('statusFilterContainer');
             const searchInput = document.getElementById('searchInput');
-            const titleEl = document.getElementById('activePTTitle');
-            if (!container) return;
-
-            if (titleEl) titleEl.innerText = selectedPT;
-
-            renderStatusFilterTabs();
-
-            const isPT = activeUser && activeUser.role === 'pt';
-            const isAdmin = activeUser && activeUser.role === 'admin';
-            const isHeadCoach = activeUser && activeUser.role === 'head_coach';
-            const canCut = activeUser && activeUser.role !== 'head_coach';
-
-            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
             const btnClearSearch = document.getElementById('btnClearSearch');
-            
-            if (btnClearSearch) {
-                if (query) btnClearSearch.classList.remove('hidden');
-                else btnClearSearch.classList.add('hidden');
-            }
-
-            let filtered = members.filter(m => {
-                if (isPT && m.ptName !== activeUser.name) return false;
-                if (!isPT && selectedPT !== 'Semua PT' && m.ptName !== selectedPT) return false;
-                
-                // Cari berdasarkan Nama, PT, atau Nomor Telepon
-                if (query && 
-                    !m.name.toLowerCase().includes(query) && 
-                    !m.ptName.toLowerCase().includes(query) &&
-                    !(m.phone && m.phone.toLowerCase().includes(query))
-                ) {
-                    return false;
-                }
-
-                const total = Number(m.totalSessions) || 1;
-                const used = Number(m.sessionsUsed) || 0;
-                const sisa = Math.max(0, total - used);
-
-                if (statusFilter === 'near_empty' && !(sisa > 0 && sisa <= 4)) return false;
-                if (statusFilter === 'empty' && !(sisa === 0)) return false;
-
-                return true;
-            });
-
-            filtered.sort((a, b) => a.name.localeCompare(b.name));
-
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full bg-white rounded-2xl p-8 text-center text-gray-400 border border-gray-100 text-xs">
-                        Tidak ada data member yang ditemukan.
-                    </div>
-                `;
-                if (isMemberListHidden) container.classList.add('hidden');
-                else container.classList.remove('hidden');
-                return;
-            }
-
-            // Sync view mode buttons styling
             const btnGrid = document.getElementById('btnViewGrid');
             const btnRow = document.getElementById('btnViewRow');
+            if (!container) return;
+
             if (btnGrid && btnRow) {
                 if (memberViewMode === 'grid') {
                     btnGrid.className = 'p-1.5 rounded-lg bg-gymRed text-white shadow-sm transition';
@@ -1025,15 +942,93 @@
                 }
             }
 
-            // Handle Hide Member List Logic
-            if (isMemberListHidden) {
-                container.classList.add('hidden');
-            } else {
-                container.classList.remove('hidden');
+            const query = (searchInput?.value || '').trim().toLowerCase();
+            if (btnClearSearch) {
+                if (query) btnClearSearch.classList.remove('hidden');
+                else btnClearSearch.classList.add('hidden');
+            }
+
+            const isPT = activeUser && activeUser.role === 'pt';
+            const isAdmin = activeUser && activeUser.role === 'admin';
+            const canCut = activeUser && (activeUser.role === 'admin' || activeUser.role === 'cs' || activeUser.role === 'pt');
+            const canUsePromoTemplate = activeUser && (activeUser.role === 'admin' || activeUser.role === 'head_coach' || activeUser.role === 'cs');
+
+            const ptScopedMembers = members.filter(m => {
+                if (isPT) return m.ptName === activeUser.name;
+                if (selectedPT !== 'Semua PT') return m.ptName === selectedPT;
+                return true;
+            });
+
+            const allCount = ptScopedMembers.length;
+            const nearEmptyCount = ptScopedMembers.filter(m => {
+                const sisa = Math.max(0, (Number(m.totalSessions) || 0) - (Number(m.sessionsUsed) || 0));
+                return sisa > 0 && sisa <= 4;
+            }).length;
+            const emptyCount = ptScopedMembers.filter(m => {
+                const sisa = Math.max(0, (Number(m.totalSessions) || 0) - (Number(m.sessionsUsed) || 0));
+                return sisa === 0;
+            }).length;
+
+            if (filterContainer) {
+                const allBtnClass = statusFilter === 'all'
+                    ? 'bg-gymDark text-white font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 shadow-sm transition'
+                    : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 transition';
+                const nearBtnClass = statusFilter === 'near_empty'
+                    ? 'bg-amber-500 text-white font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 shadow-sm transition'
+                    : 'bg-white hover:bg-amber-50 text-amber-700 border border-amber-200 font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 transition';
+                const emptyBtnClass = statusFilter === 'empty'
+                    ? 'bg-gymRed text-white font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 shadow-sm transition'
+                    : 'bg-white hover:bg-red-50 text-gymRed border border-red-200 font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 transition';
+                const hideBtnClass = isMemberListHidden
+                    ? 'bg-indigo-600 text-white font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-1.5 shadow-sm transition ml-auto'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-1.5 transition ml-auto';
+
+                filterContainer.innerHTML = `
+                    <button onclick="setStatusFilter('all')" class="${allBtnClass}">
+                        <span>Semua Member</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] ${statusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}">${allCount}</span>
+                    </button>
+                    <button onclick="setStatusFilter('near_empty')" class="${nearBtnClass}">
+                        <span>⚡ Hampir Habis</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] ${statusFilter === 'near_empty' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}">${nearEmptyCount}</span>
+                    </button>
+                    <button onclick="setStatusFilter('empty')" class="${emptyBtnClass}">
+                        <span>🚫 Sudah Habis</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] ${statusFilter === 'empty' ? 'bg-white/20 text-white' : 'bg-red-100 text-red-700'}">${emptyCount}</span>
+                    </button>
+                    <button onclick="toggleMemberList()" class="${hideBtnClass}">
+                        <span>${isMemberListHidden ? '👁️ Show' : '🙈 Hide'}</span>
+                    </button>
+                `;
+            }
+
+            let filtered = ptScopedMembers.filter(m => {
+                const sisa = Math.max(0, (Number(m.totalSessions) || 0) - (Number(m.sessionsUsed) || 0));
+                if (statusFilter === 'near_empty' && !(sisa > 0 && sisa <= 4)) return false;
+                if (statusFilter === 'empty' && sisa !== 0) return false;
+
+                if (query) {
+                    const matchName = (m.name || '').toLowerCase().includes(query);
+                    const matchPhone = (m.phone || '').toLowerCase().includes(query);
+                    if (!matchName && !matchPhone) return false;
+                }
+                return true;
+            });
+
+            filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+            if (filtered.length === 0) {
+                container.className = 'grid grid-cols-1 gap-3' + (isMemberListHidden ? ' hidden' : '');
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-8 text-center text-gray-400 text-xs border border-gray-100">
+                        Tidak ada member yang sesuai dengan filter atau pencarian saat ini.
+                    </div>
+                `;
+                return;
             }
 
             if (memberViewMode === 'row') {
-                container.className = 'grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[550px] overflow-y-auto pr-1.5' + (isMemberListHidden ? ' hidden' : '');
+                container.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[550px] overflow-y-auto pr-1.5' + (isMemberListHidden ? ' hidden' : '');
                 container.innerHTML = filtered.map(m => {
                     const total = Number(m.totalSessions) || 1;
                     const used = Number(m.sessionsUsed) || 0;
@@ -1060,24 +1055,20 @@
 
                     const cutBtnRow = !canCut ? '' : (
                         sisa === 0
-                        ? `<button disabled class="bg-gray-200 text-gray-400 cursor-not-allowed px-3 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 shadow-none">
-                                <span>Habis</span>
-                           </button>`
-                        : `<button onclick="openCutCustomModal('${m.id}')" class="bg-gymRed hover:bg-gymRedHover text-white px-3 py-2 rounded-lg font-bold text-xs transition shadow-sm flex items-center justify-center gap-1">
-                                <span>Cut Sesi</span>
-                           </button>`
+                        ? `<button disabled class="bg-gray-200 text-gray-400 cursor-not-allowed px-3.5 py-1.5 rounded-xl text-xs font-bold">Habis</button>`
+                        : `<button onclick="openCutCustomModal('${m.id}')" class="bg-gymRed hover:bg-gymRedHover text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">Cut Sesi</button>`
                     );
 
                     return `
-                        <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col justify-between gap-2.5 text-xs">
+                        <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-gray-100 space-y-2.5 hover:shadow-md transition">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-8 h-8 rounded-xl bg-red-50 text-gymRed font-bold flex items-center justify-center flex-shrink-0 text-xs">
+                                    <div class="w-9 h-9 rounded-xl bg-red-50 text-gymRed font-bold flex items-center justify-center flex-shrink-0">
                                         ${m.name.charAt(0).toUpperCase()}
                                     </div>
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-1.5 flex-wrap">
-                                            <span class="font-bold text-gray-800 truncate">${m.name}</span>
+                                            <h3 class="font-bold text-gray-800 text-sm truncate">${m.name}</h3>
                                             <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold ${statusBg}">${statusText}</span>
                                         </div>
                                         <div class="text-[11px] text-gray-500 truncate">
@@ -1087,7 +1078,7 @@
                                 </div>
                                 <div class="flex items-center gap-1 flex-shrink-0">
                                     ${m.phone ? `
-                                        <a href="${formatWAUrl(m.phone)}" target="_blank" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition" title="Chat WhatsApp">
+                                        <a href="${formatWAUrl(m.phone, m.name, sisa)}" target="_blank" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition" title="${canUsePromoTemplate && sisa === 0 ? 'Chat WA (Template Sesi Habis)' : (canUsePromoTemplate && sisa <= 4 ? 'Chat WA (Template Hampir Habis)' : 'Chat WhatsApp')}">
                                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
                                         </a>
                                     ` : ''}
@@ -1177,7 +1168,7 @@
                                 </div>
                                 <div class="flex items-center gap-1 flex-shrink-0">
                                     ${m.phone ? `
-                                        <a href="${formatWAUrl(m.phone)}" target="_blank" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition" title="Chat WhatsApp">
+                                        <a href="${formatWAUrl(m.phone, m.name, sisa)}" target="_blank" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition" title="${canUsePromoTemplate && sisa === 0 ? 'Chat WA (Template Sesi Habis)' : (canUsePromoTemplate && sisa <= 4 ? 'Chat WA (Template Hampir Habis)' : 'Chat WhatsApp')}">
                                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
                                         </a>
                                     ` : ''}

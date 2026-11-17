@@ -384,7 +384,7 @@
                 </div>
                 <div class="flex gap-2 pt-2">
                     <button type="button" onclick="closeModal('modalAddBooking')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg text-xs font-semibold transition">Batal</button>
-                    <button type="submit" class="w-1/2 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg text-xs font-semibold transition">Jadwalkan Booking</button>
+                    <button type="submit" id="btnSubmitBooking" class="w-1/2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed text-white py-2.5 rounded-lg text-xs font-semibold transition">Jadwalkan Booking</button>
                 </div>
             </form>
         </div>
@@ -780,6 +780,9 @@
         let isCloudSubscribed = false;
         let pendingDeleteType = null;
         let pendingDeleteId = null;
+        let isSubmittingBooking = false;
+        let isCheckingExpiredBookings = false;
+        const processedBookingIds = new Set();
 
         const defaultMembers = [
             { id: '1', name: 'Budi Santoso', phone: '081234567890', ptName: 'Raihan', totalSessions: 12, sessionsUsed: 5, lastCut: '06-11-2026 jam 16:08' },
@@ -2163,6 +2166,8 @@
 
         async function handleAddBooking(e) {
             e.preventDefault();
+            if (isSubmittingBooking) return;
+
             if (!activeUser || activeUser.role === 'head_coach') {
                 showToast("Akses Ditolak: Head Coach hanya dapat melihat jadwal booking.");
                 return;
@@ -2180,23 +2185,50 @@
             const time = document.getElementById('bookingTimeInput')?.value;
             const notes = document.getElementById('bookingNotesInput')?.value.trim() || '';
 
-            const newBooking = {
-                id: Date.now().toString(),
-                memberId: member.id,
-                memberName: member.name,
-                ptName: member.ptName,
-                date: date,
-                time: time,
-                notes: notes,
-                status: 'scheduled',
-                createdAt: new Date().toISOString()
-            };
+            // Cegah duplikasi jadwal booking untuk member, tanggal, dan jam yang sama
+            const isDuplicate = bookings.some(b =>
+                b.status === 'scheduled' &&
+                String(b.memberId) === String(member.id) &&
+                b.date === date &&
+                b.time === time
+            );
+            if (isDuplicate) {
+                showToast(`Jadwal booking untuk ${member.name} pada ${date} jam ${time} sudah ada!`);
+                return;
+            }
 
-            await saveBookingToCloud(newBooking);
-            closeModal('modalAddBooking');
-            renderBookings();
-            showToast(`Booking sesi berhasil dijadwalkan untuk ${member.name} pada ${date} jam ${time}!`);
-            checkExpiredBookings();
+            const submitBtn = document.getElementById('btnSubmitBooking');
+            isSubmittingBooking = true;
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'Menyimpan...';
+            }
+
+            try {
+                const newBooking = {
+                    id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+                    memberId: member.id,
+                    memberName: member.name,
+                    ptName: member.ptName,
+                    date: date,
+                    time: time,
+                    notes: notes,
+                    status: 'scheduled',
+                    createdAt: new Date().toISOString()
+                };
+
+                await saveBookingToCloud(newBooking);
+                closeModal('modalAddBooking');
+                renderBookings();
+                showToast(`Booking sesi berhasil dijadwalkan untuk ${member.name} pada ${date} jam ${time}!`);
+                await checkExpiredBookings();
+            } finally {
+                isSubmittingBooking = false;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Jadwalkan Booking';
+                }
+            }
         }
 
         async function saveBookingToCloud(bookingObj) {
@@ -2299,6 +2331,7 @@
         }
 
         async function checkExpiredBookings() {
+            if (isCheckingExpiredBookings) return;
             if (!bookings || bookings.length === 0) return;
 
             const now = new Date();
@@ -2306,40 +2339,57 @@
 
             const expiredList = bookings.filter(b => {
                 if (b.status !== 'scheduled') return false;
+                if (processedBookingIds.has(String(b.id))) return false;
                 const bookingISO = `${dmyToISO(b.date)} ${b.time}`;
                 return bookingISO <= nowISO;
             });
 
-            for (const b of expiredList) {
-                b.status = 'completed';
-                await saveBookingToCloud(b);
+            if (expiredList.length === 0) return;
 
-                const member = members.find(m => String(m.id) === String(b.memberId));
-                if (member) {
-                    member.sessionsUsed += 1;
-                    member.lastCut = `${b.date} jam ${b.time}`;
+            isCheckingExpiredBookings = true;
+            try {
+                let hasChanges = false;
+                for (const b of expiredList) {
+                    const bId = String(b.id);
+                    if (processedBookingIds.has(bId) || b.status !== 'scheduled') continue;
+                    processedBookingIds.add(bId);
 
-                    const autoLog = {
-                        id: Date.now().toString(),
-                        date: b.date,
-                        time: b.time,
-                        ptName: b.ptName,
-                        memberName: member.name,
-                        amountCut: 1,
-                        sisaSesi: Math.max(0, member.totalSessions - member.sessionsUsed),
-                        notes: `[Auto-Cut Booking] ${b.notes || ''}`.trim(),
-                        action: 'create'
-                    };
+                    b.status = 'completed';
+                    await saveBookingToCloud(b);
 
-                    await saveMemberToCloud(member);
-                    await saveLogToCloud(autoLog);
+                    const autoLogId = `booking_${bId}`;
+                    const alreadyLogged = logs.some(l => String(l.id) === autoLogId);
+
+                    const member = members.find(m => String(m.id) === String(b.memberId));
+                    if (member && !alreadyLogged) {
+                        member.sessionsUsed = (Number(member.sessionsUsed) || 0) + 1;
+                        member.lastCut = `${b.date} jam ${b.time}`;
+
+                        const autoLog = {
+                            id: autoLogId,
+                            date: b.date,
+                            time: b.time,
+                            ptName: b.ptName,
+                            memberName: member.name,
+                            amountCut: 1,
+                            sisaSesi: Math.max(0, (Number(member.totalSessions) || 0) - member.sessionsUsed),
+                            notes: `[Auto-Cut Booking] ${b.notes || ''}`.trim(),
+                            action: 'create'
+                        };
+
+                        await saveMemberToCloud(member);
+                        await saveLogToCloud(autoLog);
+                    }
+                    hasChanges = true;
                 }
-            }
 
-            if (expiredList.length > 0) {
-                renderMembers();
-                renderLogs();
-                renderBookings();
+                if (hasChanges) {
+                    renderMembers();
+                    renderLogs();
+                    renderBookings();
+                }
+            } finally {
+                isCheckingExpiredBookings = false;
             }
         }
 

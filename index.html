@@ -69,6 +69,14 @@
                     <span>Persetujuan</span>
                     <span id="approvalBadgeCount" class="bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ml-0.5">0</span>
                 </button>
+                <!-- Tombol Pesan / Chat Admin & Staff -->
+                <button id="btnChatModal" onclick="openChatModal()" class="hidden bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5 relative">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                    </svg>
+                    <span id="btnChatLabel">Pesan</span>
+                    <span id="chatBadgeCount" class="hidden bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ml-0.5">0</span>
+                </button>
                 <!-- Status & Tombol Real-time Cloud (Diumbunkan / Hidden) -->
                 <button id="btnFirebaseConfig" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1.5 h-8 rounded-lg shadow-sm transition items-center justify-center gap-1.5">
                     <svg class="w-3.5 h-3.5 text-amber-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -697,6 +705,51 @@
         </div>
     </div>
 
+    <!-- Modal Chat / Pesan Admin & Staff -->
+    <div id="modalChat" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-gray-100 flex flex-col max-h-[85vh] overflow-hidden">
+            <!-- Header Modal Chat -->
+            <div class="p-4 border-b flex justify-between items-center bg-gymDark text-white">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-sky-600 rounded-xl">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="chatModalTitle" class="font-bold text-base">Pesan & Instruksi</h3>
+                        <p id="chatModalSubtitle" class="text-[11px] text-gray-300">Komunikasi langsung real-time</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modalChat')" class="text-gray-400 hover:text-white p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Selector Akun Tujuan (Khusus Admin) -->
+            <div id="chatTargetSelectorContainer" class="hidden p-3 bg-sky-50/70 border-b border-sky-100 space-y-1.5">
+                <label class="block text-[11px] font-bold text-sky-900 uppercase">Pilih Akun Tujuan:</label>
+                <select id="chatTargetSelect" onchange="selectChatTarget(this.value)" class="w-full bg-white border border-sky-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    <!-- Diisi dinamis -->
+                </select>
+            </div>
+
+            <!-- Area Riwayat Percakapan -->
+            <div id="chatMessagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 min-h-[260px] max-h-[380px]">
+                <!-- Bubble pesan akan di-render di sini -->
+            </div>
+
+            <!-- Form Kirim Pesan -->
+            <form id="formSendChat" class="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
+                <input type="text" id="chatMessageInput" required placeholder="Tulis pesan..." autocomplete="off" class="flex-1 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <button type="submit" id="btnSendChatSubmit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition flex items-center gap-1.5 flex-shrink-0">
+                    <span>Kirim</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Konfirmasi Hapus Custom -->
     <div id="modalConfirm" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
@@ -765,8 +818,11 @@
         let logs = [];
         let approvals = [];
         let bookings = [];
+        let messages = [];
         let userPins = {};
         let editingPTIndex = null;
+        let selectedChatTarget = 'Head Coach';
+        let lastNotifiedMsgId = null;
         let memberViewMode = localStorage.getItem('member_view_mode') || 'grid';
         let isMemberListHidden = false;
 
@@ -1317,6 +1373,7 @@
             renderMembers();
             renderLogs();
             updateApprovalBadge();
+            updateChatBadge();
             showToast(`Selamat datang, ${userChoice}!`);
         }
 
@@ -1340,6 +1397,8 @@
             const btnOpenBookingModal = document.getElementById('btnOpenBookingModal');
             const btnSectionAddBooking = document.getElementById('btnSectionAddBooking');
             const btnExportLogExcel = document.getElementById('btnExportLogExcel');
+            const btnChatModal = document.getElementById('btnChatModal');
+            const btnChatLabel = document.getElementById('btnChatLabel');
 
             if (!activeUser) {
                 if (badge) badge.classList.add('hidden');
@@ -1350,10 +1409,18 @@
                 if (btnOpenBookingModal) btnOpenBookingModal.classList.add('hidden');
                 if (btnSectionAddBooking) btnSectionAddBooking.classList.add('hidden');
                 if (btnExportLogExcel) btnExportLogExcel.classList.add('hidden');
+                if (btnChatModal) btnChatModal.classList.add('hidden');
                 return;
             }
 
             if (badge) badge.classList.remove('hidden');
+            if (btnChatModal) {
+                btnChatModal.classList.remove('hidden');
+                btnChatModal.classList.add('flex');
+            }
+            if (btnChatLabel) {
+                btnChatLabel.innerText = activeUser.role === 'admin' ? 'Kirim Pesan' : 'Pesan Admin';
+            }
             if (nameDisp) nameDisp.innerText = activeUser.name;
             
             if (roleDisp) {
@@ -1409,6 +1476,7 @@
             }
 
             updateApprovalBadge();
+            updateChatBadge();
         }
 
         async function initFirebaseOrLocal() {
@@ -2114,6 +2182,290 @@
             showToast("Pengajuan ditolak.");
         }
 
+        // ==================== CHAT / MESSAGE SYSTEM ====================
+        function getUnreadMessagesForUser() {
+            if (!activeUser) return [];
+            const myName = activeUser.name;
+            if (activeUser.role === 'admin') {
+                return messages.filter(m => m.recipient === 'Admin' && !(m.readBy || []).includes('Admin'));
+            }
+            return messages.filter(m => (m.recipient === myName || m.recipient === 'ALL') && !(m.readBy || []).includes(myName));
+        }
+
+        function updateChatBadge() {
+            const badgeEl = document.getElementById('chatBadgeCount');
+            if (!badgeEl || !activeUser) return;
+            const unread = getUnreadMessagesForUser();
+            if (unread.length > 0) {
+                badgeEl.innerText = unread.length;
+                badgeEl.classList.remove('hidden');
+            } else {
+                badgeEl.classList.add('hidden');
+            }
+        }
+
+        function renderChatTargetOptions() {
+            const selectEl = document.getElementById('chatTargetSelect');
+            if (!selectEl) return;
+
+            const targets = [
+                { value: 'ALL', label: '📢 Semua Akun (Broadcast)' },
+                { value: 'Head Coach', label: '🔵 Head Coach' },
+                { value: 'Customer Service', label: '🟣 Customer Service' }
+            ];
+            ptList.forEach(pt => {
+                targets.push({ value: pt, label: `🟢 Trainer: ${pt}` });
+            });
+
+            if (!targets.some(t => t.value === selectedChatTarget)) {
+                selectedChatTarget = 'Head Coach';
+            }
+
+            selectEl.innerHTML = targets.map(t => {
+                const unreadFromTarget = t.value === 'ALL' ? 0 : messages.filter(
+                    m => m.sender === t.value && m.recipient === 'Admin' && !(m.readBy || []).includes('Admin')
+                ).length;
+                const badgeText = unreadFromTarget > 0 ? ` (${unreadFromTarget} pesan baru)` : '';
+                return `<option value="${t.value}" ${selectedChatTarget === t.value ? 'selected' : ''}>${t.label}${badgeText}</option>`;
+            }).join('');
+        }
+
+        function openChatModal() {
+            if (!activeUser) {
+                showToast("Silakan login terlebih dahulu.");
+                return;
+            }
+
+            const titleEl = document.getElementById('chatModalTitle');
+            const subEl = document.getElementById('chatModalSubtitle');
+            const selectorContainer = document.getElementById('chatTargetSelectorContainer');
+            const inputEl = document.getElementById('chatMessageInput');
+
+            if (activeUser.role === 'admin') {
+                if (titleEl) titleEl.innerText = 'Kirim Pesan ke Staff';
+                if (subEl) subEl.innerText = 'Pilih akun tujuan untuk mengirim pesan atau instruksi';
+                if (selectorContainer) selectorContainer.classList.remove('hidden');
+                
+                // Jika ada pesan baru dari staff tertentu, otomatis arahkan ke akun tersebut
+                const unreadFromStaff = messages.find(m => m.recipient === 'Admin' && !(m.readBy || []).includes('Admin'));
+                if (unreadFromStaff && unreadFromStaff.sender) {
+                    selectedChatTarget = unreadFromStaff.sender;
+                }
+                renderChatTargetOptions();
+                if (inputEl) inputEl.placeholder = selectedChatTarget === 'ALL' ? 'Tulis pengumuman ke semua akun...' : `Tulis pesan untuk ${selectedChatTarget}...`;
+            } else {
+                if (titleEl) titleEl.innerText = 'Pesan dari Admin';
+                if (subEl) subEl.innerText = `Kotak masuk & balasan langsung untuk ${activeUser.name}`;
+                if (selectorContainer) selectorContainer.classList.add('hidden');
+                if (inputEl) inputEl.placeholder = 'Tulis balasan untuk Admin...';
+            }
+
+            openModal('modalChat');
+            markChatAsRead();
+            renderChatMessages();
+        }
+
+        function selectChatTarget(target) {
+            selectedChatTarget = target;
+            const inputEl = document.getElementById('chatMessageInput');
+            if (inputEl) {
+                inputEl.placeholder = target === 'ALL' ? 'Tulis pengumuman ke semua akun...' : `Tulis pesan untuk ${target}...`;
+            }
+            markChatAsRead();
+            renderChatMessages();
+        }
+
+        async function markChatAsRead() {
+            if (!activeUser) return;
+            const myName = activeUser.name;
+            let changed = false;
+
+            for (const m of messages) {
+                const readList = Array.isArray(m.readBy) ? [...m.readBy] : [];
+                if (readList.includes(myName)) continue;
+
+                let shouldMark = false;
+                if (activeUser.role === 'admin') {
+                    if (m.recipient === 'Admin' && m.sender === selectedChatTarget) {
+                        shouldMark = true;
+                    }
+                } else {
+                    if (m.recipient === myName || m.recipient === 'ALL') {
+                        shouldMark = true;
+                    }
+                }
+
+                if (shouldMark) {
+                    readList.push(myName);
+                    m.readBy = readList;
+                    changed = true;
+                    if (db) {
+                        try {
+                            await setDoc(doc(db, 'messages', String(m.id)), m);
+                        } catch (e) {
+                            console.warn("Error updating message read status:", e);
+                        }
+                    }
+                }
+            }
+
+            if (changed) {
+                localStorage.setItem('pt_messages', JSON.stringify(messages));
+                updateChatBadge();
+                if (activeUser.role === 'admin') renderChatTargetOptions();
+            }
+        }
+
+        function renderChatMessages() {
+            const container = document.getElementById('chatMessagesContainer');
+            if (!container || !activeUser) return;
+
+            const myName = activeUser.name;
+            const isAdmin = activeUser.role === 'admin';
+
+            let thread = messages.filter(m => {
+                if (isAdmin) {
+                    if (selectedChatTarget === 'ALL') {
+                        return m.recipient === 'ALL';
+                    }
+                    return (
+                        (m.sender === 'Admin' && m.recipient === selectedChatTarget) ||
+                        (m.sender === selectedChatTarget && m.recipient === 'Admin')
+                    );
+                } else {
+                    return (
+                        (m.sender === 'Admin' && (m.recipient === myName || m.recipient === 'ALL')) ||
+                        (m.sender === myName && m.recipient === 'Admin')
+                    );
+                }
+            });
+
+            thread.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+
+            if (thread.length === 0) {
+                const emptyTarget = isAdmin
+                    ? (selectedChatTarget === 'ALL' ? 'semua akun' : selectedChatTarget)
+                    : 'Admin';
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center py-10 text-gray-400 space-y-1.5">
+                        <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                        <p class="text-xs font-medium">Belum ada pesan dengan ${emptyTarget}.</p>
+                        <p class="text-[11px]">Ketik pesan di bawah untuk memulai percakapan.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = thread.map(m => {
+                const isMine = m.sender === myName;
+                const isBroadcast = m.recipient === 'ALL';
+                const readByList = Array.isArray(m.readBy) ? m.readBy : [];
+                const isReadByTarget = isMine && !isBroadcast && readByList.includes(m.recipient);
+
+                const safeText = String(m.text || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+
+                if (isMine) {
+                    return `
+                        <div class="flex flex-col items-end space-y-1">
+                            <div class="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                ${isBroadcast ? '<span class="bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">📢 Broadcast</span>' : ''}
+                                <span>Anda • ${m.displayTime || ''}</span>
+                                ${isAdmin ? `<button onclick="deleteChatMessage('${m.id}')" class="text-red-400 hover:text-red-600 ml-1" title="Hapus pesan">✕</button>` : ''}
+                            </div>
+                            <div class="bg-sky-600 text-white rounded-2xl rounded-tr-sm px-3.5 py-2.5 text-xs max-w-[82%] shadow-sm break-words leading-relaxed">
+                                ${safeText}
+                            </div>
+                            ${!isBroadcast ? `<span class="text-[10px] ${isReadByTarget ? 'text-sky-600 font-semibold' : 'text-gray-400'}">${isReadByTarget ? '✓✓ Dibaca' : '✓ Terkirim'}</span>` : ''}
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="flex flex-col items-start space-y-1">
+                            <div class="flex items-center gap-1.5 text-[10px] text-gray-500">
+                                <span class="font-bold text-gymDark">${m.sender}</span>
+                                ${isBroadcast ? '<span class="bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">📢 Pengumuman</span>' : ''}
+                                <span>• ${m.displayTime || ''}</span>
+                            </div>
+                            <div class="bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-xs max-w-[82%] shadow-sm break-words leading-relaxed">
+                                ${safeText}
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function handleSendChat(e) {
+            e.preventDefault();
+            if (!activeUser) return;
+
+            const inputEl = document.getElementById('chatMessageInput');
+            const text = (inputEl?.value || '').trim();
+            if (!text) return;
+
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+
+            const recipient = activeUser.role === 'admin' ? selectedChatTarget : 'Admin';
+
+            const newMsg = {
+                id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+                sender: activeUser.name,
+                senderRole: activeUser.role,
+                recipient: recipient,
+                text: text,
+                timestamp: now.toISOString(),
+                displayTime: `${dd}-${mm}-${yyyy} ${hh}:${min}`,
+                readBy: [activeUser.name]
+            };
+
+            if (inputEl) inputEl.value = '';
+            await saveMessageToCloud(newMsg);
+            renderChatMessages();
+        }
+
+        async function saveMessageToCloud(msgObj) {
+            const idx = messages.findIndex(m => String(m.id) === String(msgObj.id));
+            if (idx >= 0) messages[idx] = msgObj;
+            else messages.push(msgObj);
+            localStorage.setItem('pt_messages', JSON.stringify(messages));
+
+            if (db) {
+                try {
+                    await setDoc(doc(db, 'messages', String(msgObj.id)), msgObj);
+                } catch (e) {
+                    console.warn("Error saving message to cloud:", e);
+                }
+            }
+            updateChatBadge();
+        }
+
+        async function deleteChatMessage(msgId) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            messages = messages.filter(m => String(m.id) !== String(msgId));
+            localStorage.setItem('pt_messages', JSON.stringify(messages));
+
+            if (db) {
+                try {
+                    await deleteDoc(doc(db, 'messages', String(msgId)));
+                } catch (e) {
+                    console.warn("Error deleting message from cloud:", e);
+                }
+            }
+            updateChatBadge();
+            renderChatMessages();
+            showToast("Pesan dihapus.");
+        }
+
         // ==================== BOOKING SYSTEM & AUTO-CUT LOGIC ====================
         function openAddBookingModal() {
             if (!activeUser) {
@@ -2525,6 +2877,36 @@
                     renderPTManageList();
                 }
             }, (err) => console.warn("Pins listen error:", err));
+
+            // Listen Messages Collection
+            onSnapshot(collection(db, 'messages'), (snapshot) => {
+                const cloudMessages = [];
+                snapshot.forEach(doc => cloudMessages.push(doc.data()));
+                messages = cloudMessages;
+                localStorage.setItem('pt_messages', JSON.stringify(messages));
+                updateChatBadge();
+
+                if (activeUser) {
+                    const chatModal = document.getElementById('modalChat');
+                    const isChatOpen = chatModal && !chatModal.classList.contains('hidden');
+
+                    if (isChatOpen) {
+                        if (activeUser.role === 'admin') renderChatTargetOptions();
+                        markChatAsRead();
+                        renderChatMessages();
+                    } else {
+                        const unread = getUnreadMessagesForUser();
+                        if (unread.length > 0) {
+                            unread.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+                            const latest = unread[0];
+                            if (latest && latest.id !== lastNotifiedMsgId) {
+                                lastNotifiedMsgId = latest.id;
+                                showToast(`💬 Pesan baru dari ${latest.sender}: "${latest.text.slice(0, 40)}${latest.text.length > 40 ? '...' : ''}"`);
+                            }
+                        }
+                    }
+                }
+            }, (err) => console.warn("Messages listen error:", err));
         }
 
         function loadLocalStorageData() {
@@ -2546,6 +2928,9 @@
                 const savedBookings = localStorage.getItem('pt_bookings');
                 if (savedBookings) bookings = JSON.parse(savedBookings);
 
+                const savedMessages = localStorage.getItem('pt_messages');
+                if (savedMessages) messages = JSON.parse(savedMessages);
+
                 const savedPins = localStorage.getItem('user_pins');
                 if (savedPins) userPins = JSON.parse(savedPins);
 
@@ -2554,6 +2939,7 @@
                 renderLogs();
                 renderBookings();
                 updateApprovalBadge();
+                updateChatBadge();
             } catch(e) {
                 console.warn("Error loading local storage:", e);
             }
@@ -2722,6 +3108,22 @@
                 if (approvals[i].ptName === oldVal) {
                     approvals[i].ptName = newVal;
                     await saveApprovalToCloud(approvals[i]);
+                }
+            }
+
+            // 7. Update Messages associated with PT
+            for (let i = 0; i < messages.length; i++) {
+                let msgChanged = false;
+                if (messages[i].sender === oldVal) {
+                    messages[i].sender = newVal;
+                    msgChanged = true;
+                }
+                if (messages[i].recipient === oldVal) {
+                    messages[i].recipient = newVal;
+                    msgChanged = true;
+                }
+                if (msgChanged) {
+                    await saveMessageToCloud(messages[i]);
                 }
             }
 
@@ -3104,6 +3506,7 @@
             document.getElementById('formEditLog')?.addEventListener('submit', handleEditLog);
             document.getElementById('formGoogleSheets')?.addEventListener('submit', handleSaveGoogleSheetsUrl);
             document.getElementById('formFirebase')?.addEventListener('submit', handleSaveFirebaseConfig);
+            document.getElementById('formSendChat')?.addEventListener('submit', handleSendChat);
             document.getElementById('btnConfirmAction')?.addEventListener('click', executeConfirmDelete);
             document.getElementById('btnFirebaseConfig')?.addEventListener('click', openFirebaseModal);
             document.getElementById('btnGoogleSheets')?.addEventListener('click', openGoogleSheetsModal);
@@ -3165,6 +3568,10 @@
         window.formatWAUrl = formatWAUrl;
         window.removeMemberFromCloud = removeMemberFromCloud;
         window.togglePasswordVisibility = togglePasswordVisibility;
+        window.openChatModal = openChatModal;
+        window.selectChatTarget = selectChatTarget;
+        window.handleSendChat = handleSendChat;
+        window.deleteChatMessage = deleteChatMessage;
     </script>
 </body>
 </html>

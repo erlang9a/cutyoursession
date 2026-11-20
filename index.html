@@ -1379,6 +1379,8 @@
 
         function logoutUser() {
             activeUser = null;
+            selectedChatTarget = 'Head Coach';
+            lastNotifiedMsgId = null;
             sessionStorage.removeItem('active_user');
             localStorage.removeItem('active_user');
             updateUIForRole();
@@ -1419,7 +1421,8 @@
                 btnChatModal.classList.add('flex');
             }
             if (btnChatLabel) {
-                btnChatLabel.innerText = activeUser.role === 'admin' ? 'Kirim Pesan' : 'Pesan Admin';
+                const canInitiateChat = activeUser.role === 'admin' || activeUser.role === 'head_coach' || activeUser.role === 'cs';
+                btnChatLabel.innerText = canInitiateChat ? 'Kirim Pesan' : 'Pesan';
             }
             if (nameDisp) nameDisp.innerText = activeUser.name;
             
@@ -2183,13 +2186,23 @@
         }
 
         // ==================== CHAT / MESSAGE SYSTEM ====================
+        const ALLOWED_PT_CHAT_TARGETS = ['Customer Service', 'Head Coach', 'Admin'];
+
+        function isManagementChatRole(role) {
+            return role === 'admin' || role === 'head_coach' || role === 'cs';
+        }
+
         function getUnreadMessagesForUser() {
             if (!activeUser) return [];
             const myName = activeUser.name;
-            if (activeUser.role === 'admin') {
-                return messages.filter(m => m.recipient === 'Admin' && !(m.readBy || []).includes('Admin'));
-            }
-            return messages.filter(m => (m.recipient === myName || m.recipient === 'ALL') && !(m.readBy || []).includes(myName));
+            const isMgmt = isManagementChatRole(activeUser.role);
+            return messages.filter(m => {
+                if (m.sender === myName) return false;
+                // Trainer hanya menerima pesan dari CS, Head Coach, atau Admin (bukan sesama trainer)
+                if (!isMgmt && !ALLOWED_PT_CHAT_TARGETS.includes(m.sender)) return false;
+                const isForMe = (m.recipient === myName) || (m.recipient === 'ALL');
+                return isForMe && !(m.readBy || []).includes(myName);
+            });
         }
 
         function updateChatBadge() {
@@ -2204,27 +2217,72 @@
             }
         }
 
+        function getChatTargetsForActiveUser() {
+            if (!activeUser) return [];
+            const myName = activeUser.name;
+
+            if (isManagementChatRole(activeUser.role)) {
+                const targets = [
+                    { value: 'ALL', label: '📢 Semua Akun / Trainer (Broadcast)' }
+                ];
+                if (myName !== 'Admin') {
+                    targets.push({ value: 'Admin', label: '🔑 Admin' });
+                }
+                if (myName !== 'Head Coach') {
+                    targets.push({ value: 'Head Coach', label: '🔵 Head Coach' });
+                }
+                if (myName !== 'Customer Service') {
+                    targets.push({ value: 'Customer Service', label: '🟣 Customer Service' });
+                }
+                ptList.forEach(pt => {
+                    if (pt !== myName) {
+                        targets.push({ value: pt, label: `🟢 Trainer: ${pt}` });
+                    }
+                });
+                return targets;
+            }
+
+            // Untuk akun Trainer (PT): hanya bisa chat ke Customer Service, Head Coach, dan Admin (tanpa akses sesama trainer)
+            return [
+                { value: 'Customer Service', label: '🟣 Customer Service' },
+                { value: 'Head Coach', label: '🔵 Head Coach' },
+                { value: 'Admin', label: '🔑 Admin' }
+            ];
+        }
+
         function renderChatTargetOptions() {
             const selectEl = document.getElementById('chatTargetSelect');
-            if (!selectEl) return;
+            if (!selectEl || !activeUser) return;
 
-            const targets = [
-                { value: 'ALL', label: '📢 Semua Akun (Broadcast)' },
-                { value: 'Head Coach', label: '🔵 Head Coach' },
-                { value: 'Customer Service', label: '🟣 Customer Service' }
-            ];
-            ptList.forEach(pt => {
-                targets.push({ value: pt, label: `🟢 Trainer: ${pt}` });
-            });
+            const myName = activeUser.name;
+            const isMgmt = isManagementChatRole(activeUser.role);
+            const targets = getChatTargetsForActiveUser();
 
             if (!targets.some(t => t.value === selectedChatTarget)) {
-                selectedChatTarget = 'Head Coach';
+                if (isMgmt) {
+                    selectedChatTarget = ptList[0] || (targets[1] ? targets[1].value : 'ALL');
+                } else {
+                    selectedChatTarget = 'Customer Service';
+                }
             }
 
             selectEl.innerHTML = targets.map(t => {
-                const unreadFromTarget = t.value === 'ALL' ? 0 : messages.filter(
-                    m => m.sender === t.value && m.recipient === 'Admin' && !(m.readBy || []).includes('Admin')
-                ).length;
+                let unreadFromTarget = 0;
+                if (isMgmt) {
+                    if (t.value === 'ALL') {
+                        unreadFromTarget = messages.filter(
+                            m => m.recipient === 'ALL' && m.sender !== myName && !(m.readBy || []).includes(myName)
+                        ).length;
+                    } else {
+                        unreadFromTarget = messages.filter(
+                            m => m.sender === t.value && m.recipient === myName && !(m.readBy || []).includes(myName)
+                        ).length;
+                    }
+                } else {
+                    unreadFromTarget = messages.filter(
+                        m => m.sender === t.value && (m.recipient === myName || m.recipient === 'ALL') && !(m.readBy || []).includes(myName)
+                    ).length;
+                }
                 const badgeText = unreadFromTarget > 0 ? ` (${unreadFromTarget} pesan baru)` : '';
                 return `<option value="${t.value}" ${selectedChatTarget === t.value ? 'selected' : ''}>${t.label}${badgeText}</option>`;
             }).join('');
@@ -2240,24 +2298,36 @@
             const subEl = document.getElementById('chatModalSubtitle');
             const selectorContainer = document.getElementById('chatTargetSelectorContainer');
             const inputEl = document.getElementById('chatMessageInput');
+            const myName = activeUser.name;
+            const isMgmt = isManagementChatRole(activeUser.role);
 
-            if (activeUser.role === 'admin') {
-                if (titleEl) titleEl.innerText = 'Kirim Pesan ke Staff';
-                if (subEl) subEl.innerText = 'Pilih akun tujuan untuk mengirim pesan atau instruksi';
-                if (selectorContainer) selectorContainer.classList.remove('hidden');
-                
-                // Jika ada pesan baru dari staff tertentu, otomatis arahkan ke akun tersebut
-                const unreadFromStaff = messages.find(m => m.recipient === 'Admin' && !(m.readBy || []).includes('Admin'));
-                if (unreadFromStaff && unreadFromStaff.sender) {
-                    selectedChatTarget = unreadFromStaff.sender;
+            if (selectorContainer) selectorContainer.classList.remove('hidden');
+
+            // Otomatis arahkan dropdown ke pengirim pesan yang belum dibaca
+            const unreadList = getUnreadMessagesForUser().sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+            if (unreadList.length > 0) {
+                const latestUnread = unreadList[0];
+                if (isMgmt) {
+                    selectedChatTarget = latestUnread.recipient === 'ALL' ? 'ALL' : latestUnread.sender;
+                } else if (ALLOWED_PT_CHAT_TARGETS.includes(latestUnread.sender)) {
+                    selectedChatTarget = latestUnread.sender;
                 }
-                renderChatTargetOptions();
-                if (inputEl) inputEl.placeholder = selectedChatTarget === 'ALL' ? 'Tulis pengumuman ke semua akun...' : `Tulis pesan untuk ${selectedChatTarget}...`;
+            }
+
+            renderChatTargetOptions();
+
+            if (isMgmt) {
+                if (titleEl) titleEl.innerText = 'Kirim Pesan & Instruksi';
+                if (subEl) subEl.innerText = `Login sebagai ${myName} • Chat langsung ke Trainer & Staff`;
             } else {
-                if (titleEl) titleEl.innerText = 'Pesan dari Admin';
-                if (subEl) subEl.innerText = `Kotak masuk & balasan langsung untuk ${activeUser.name}`;
-                if (selectorContainer) selectorContainer.classList.add('hidden');
-                if (inputEl) inputEl.placeholder = 'Tulis balasan untuk Admin...';
+                if (titleEl) titleEl.innerText = 'Pesan ke CS, Head Coach & Admin';
+                if (subEl) subEl.innerText = `Login sebagai ${myName} • Chat khusus ke CS, Head Coach & Admin`;
+            }
+
+            if (inputEl) {
+                inputEl.placeholder = selectedChatTarget === 'ALL'
+                    ? 'Tulis pengumuman ke semua akun...'
+                    : `Tulis pesan untuk ${selectedChatTarget}...`;
             }
 
             openModal('modalChat');
@@ -2266,6 +2336,14 @@
         }
 
         function selectChatTarget(target) {
+            if (!activeUser) return;
+            const isMgmt = isManagementChatRole(activeUser.role);
+            if (!isMgmt && !ALLOWED_PT_CHAT_TARGETS.includes(target)) {
+                showToast("Akses Ditolak: Trainer hanya dapat chat ke CS, Head Coach, atau Admin.");
+                selectedChatTarget = 'Customer Service';
+                renderChatTargetOptions();
+                return;
+            }
             selectedChatTarget = target;
             const inputEl = document.getElementById('chatMessageInput');
             if (inputEl) {
@@ -2278,21 +2356,24 @@
         async function markChatAsRead() {
             if (!activeUser) return;
             const myName = activeUser.name;
+            const isMgmt = isManagementChatRole(activeUser.role);
             let changed = false;
 
             for (const m of messages) {
+                if (m.sender === myName) continue;
                 const readList = Array.isArray(m.readBy) ? [...m.readBy] : [];
                 if (readList.includes(myName)) continue;
 
                 let shouldMark = false;
-                if (activeUser.role === 'admin') {
-                    if (m.recipient === 'Admin' && m.sender === selectedChatTarget) {
-                        shouldMark = true;
+                if (isMgmt) {
+                    if (selectedChatTarget === 'ALL') {
+                        shouldMark = (m.recipient === 'ALL');
+                    } else {
+                        shouldMark = (m.recipient === myName && m.sender === selectedChatTarget);
                     }
                 } else {
-                    if (m.recipient === myName || m.recipient === 'ALL') {
-                        shouldMark = true;
-                    }
+                    if (!ALLOWED_PT_CHAT_TARGETS.includes(selectedChatTarget)) continue;
+                    shouldMark = (m.sender === selectedChatTarget && (m.recipient === myName || m.recipient === 'ALL'));
                 }
 
                 if (shouldMark) {
@@ -2312,7 +2393,7 @@
             if (changed) {
                 localStorage.setItem('pt_messages', JSON.stringify(messages));
                 updateChatBadge();
-                if (activeUser.role === 'admin') renderChatTargetOptions();
+                renderChatTargetOptions();
             }
         }
 
@@ -2322,20 +2403,22 @@
 
             const myName = activeUser.name;
             const isAdmin = activeUser.role === 'admin';
+            const isMgmt = isManagementChatRole(activeUser.role);
 
             let thread = messages.filter(m => {
-                if (isAdmin) {
+                if (isMgmt) {
                     if (selectedChatTarget === 'ALL') {
                         return m.recipient === 'ALL';
                     }
                     return (
-                        (m.sender === 'Admin' && m.recipient === selectedChatTarget) ||
-                        (m.sender === selectedChatTarget && m.recipient === 'Admin')
+                        (m.sender === myName && m.recipient === selectedChatTarget) ||
+                        (m.sender === selectedChatTarget && m.recipient === myName)
                     );
                 } else {
+                    if (!ALLOWED_PT_CHAT_TARGETS.includes(selectedChatTarget)) return false;
                     return (
-                        (m.sender === 'Admin' && (m.recipient === myName || m.recipient === 'ALL')) ||
-                        (m.sender === myName && m.recipient === 'Admin')
+                        (m.sender === myName && m.recipient === selectedChatTarget) ||
+                        (m.sender === selectedChatTarget && (m.recipient === myName || m.recipient === 'ALL'))
                     );
                 }
             });
@@ -2343,9 +2426,7 @@
             thread.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
 
             if (thread.length === 0) {
-                const emptyTarget = isAdmin
-                    ? (selectedChatTarget === 'ALL' ? 'semua akun' : selectedChatTarget)
-                    : 'Admin';
+                const emptyTarget = selectedChatTarget === 'ALL' ? 'semua akun' : selectedChatTarget;
                 container.innerHTML = `
                     <div class="h-full flex flex-col items-center justify-center text-center py-10 text-gray-400 space-y-1.5">
                         <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
@@ -2361,6 +2442,7 @@
                 const isBroadcast = m.recipient === 'ALL';
                 const readByList = Array.isArray(m.readBy) ? m.readBy : [];
                 const isReadByTarget = isMine && !isBroadcast && readByList.includes(m.recipient);
+                const canDeleteMsg = isAdmin || isMine;
 
                 const safeText = String(m.text || '')
                     .replace(/&/g, '&amp;')
@@ -2373,7 +2455,7 @@
                             <div class="flex items-center gap-1.5 text-[10px] text-gray-400">
                                 ${isBroadcast ? '<span class="bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">📢 Broadcast</span>' : ''}
                                 <span>Anda • ${m.displayTime || ''}</span>
-                                ${isAdmin ? `<button onclick="deleteChatMessage('${m.id}')" class="text-red-400 hover:text-red-600 ml-1" title="Hapus pesan">✕</button>` : ''}
+                                ${canDeleteMsg ? `<button onclick="deleteChatMessage('${m.id}')" class="text-red-400 hover:text-red-600 ml-1" title="Hapus pesan">✕</button>` : ''}
                             </div>
                             <div class="bg-sky-600 text-white rounded-2xl rounded-tr-sm px-3.5 py-2.5 text-xs max-w-[82%] shadow-sm break-words leading-relaxed">
                                 ${safeText}
@@ -2388,6 +2470,7 @@
                                 <span class="font-bold text-gymDark">${m.sender}</span>
                                 ${isBroadcast ? '<span class="bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">📢 Pengumuman</span>' : ''}
                                 <span>• ${m.displayTime || ''}</span>
+                                ${isAdmin ? `<button onclick="deleteChatMessage('${m.id}')" class="text-red-400 hover:text-red-600 ml-1" title="Hapus pesan">✕</button>` : ''}
                             </div>
                             <div class="bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-xs max-w-[82%] shadow-sm break-words leading-relaxed">
                                 ${safeText}
@@ -2404,6 +2487,15 @@
             e.preventDefault();
             if (!activeUser) return;
 
+            const isMgmt = isManagementChatRole(activeUser.role);
+            const recipient = selectedChatTarget;
+
+            // Blokir akses chat ke sesama trainer maupun broadcast dari akun trainer
+            if (!isMgmt && !ALLOWED_PT_CHAT_TARGETS.includes(recipient)) {
+                showToast("Akses Ditolak: Trainer hanya dapat mengirim pesan ke CS, Head Coach, atau Admin.");
+                return;
+            }
+
             const inputEl = document.getElementById('chatMessageInput');
             const text = (inputEl?.value || '').trim();
             if (!text) return;
@@ -2414,8 +2506,6 @@
             const yyyy = now.getFullYear();
             const hh = String(now.getHours()).padStart(2, '0');
             const min = String(now.getMinutes()).padStart(2, '0');
-
-            const recipient = activeUser.role === 'admin' ? selectedChatTarget : 'Admin';
 
             const newMsg = {
                 id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -2450,7 +2540,11 @@
         }
 
         async function deleteChatMessage(msgId) {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser) return;
+            const targetMsg = messages.find(m => String(m.id) === String(msgId));
+            if (!targetMsg) return;
+            if (activeUser.role !== 'admin' && targetMsg.sender !== activeUser.name) return;
+
             messages = messages.filter(m => String(m.id) !== String(msgId));
             localStorage.setItem('pt_messages', JSON.stringify(messages));
 
@@ -2891,7 +2985,7 @@
                     const isChatOpen = chatModal && !chatModal.classList.contains('hidden');
 
                     if (isChatOpen) {
-                        if (activeUser.role === 'admin') renderChatTargetOptions();
+                        renderChatTargetOptions();
                         markChatAsRead();
                         renderChatMessages();
                     } else {
